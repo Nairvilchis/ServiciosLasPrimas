@@ -36,11 +36,12 @@ const ServiceUpdateSchema = z.object({
 type ServiceFormData = z.infer<typeof ServiceUpdateSchema>;
 
 interface EditServicePageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>; // params is a Promise
 }
 
 export default function EditServicePage({ params }: EditServicePageProps) {
-  const { id: serviceId } = params;
+  // Unwrap params using React.use() as recommended by Next.js
+  const { id: serviceId } = React.use(params);
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(true);
