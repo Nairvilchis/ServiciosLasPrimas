@@ -11,40 +11,38 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { Card, CardContent } from "@/components/ui/card";
-import Autoplay from "embla-carousel-autoplay" // Import Autoplay plugin
-
-const photos = [
-  {
-    src: "https://picsum.photos/seed/party1/1200/800",
-    alt: "Colorful party setup with balloons",
-    aiHint: "party balloons decoration",
-  },
-  {
-    src: "https://picsum.photos/seed/party2/1200/800",
-    alt: "Close up of a beautifully decorated cake",
-    aiHint: "decorated event cake",
-  },
-  {
-    src: "https://picsum.photos/seed/party3/1200/800",
-    alt: "Guests enjoying drinks at an open bar",
-    aiHint: "party guests drinks",
-  },
-  {
-    src: "https://picsum.photos/seed/party4/1200/800",
-    alt: "Elegant table setting for an event",
-    aiHint: "event table setting",
-  },
-  {
-    src: "https://picsum.photos/seed/party5/1200/800",
-    alt: "Fun candy bar with various sweets",
-    aiHint: "candy bar sweets",
-  },
-];
+import Autoplay from "embla-carousel-autoplay"; // Import Autoplay plugin
+import { useEffect, useState } from 'react';
+import { getPhotos } from '@/services/eventData'; // Import fetch function
+import type { GalleryPhoto } from '@/lib/types'; // Import the GalleryPhoto type
+import { Skeleton } from "@/components/ui/skeleton"; // Import Skeleton
 
 export function PhotoCarousel() {
+  const [photos, setPhotos] = useState<GalleryPhoto[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   const plugin = React.useRef(
     Autoplay({ delay: 4000, stopOnInteraction: true }) // Configure autoplay
-  )
+  );
+
+  useEffect(() => {
+    async function loadPhotos() {
+      try {
+        setIsLoading(true);
+        const fetchedPhotos = await getPhotos();
+        setPhotos(fetchedPhotos);
+        setError(null);
+      } catch (err) {
+        console.error("Failed to fetch photos:", err);
+        setError("Could not load gallery photos at this time.");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadPhotos();
+  }, []); // Empty dependency array means this runs once on mount
+
 
   return (
     <section id="gallery" className="py-20 md:py-28 bg-muted">
@@ -52,6 +50,9 @@ export function PhotoCarousel() {
         <h2 className="text-3xl font-bold tracking-tight text-center sm:text-4xl mb-12 text-primary">
           Event Gallery
         </h2>
+
+        {error && <p className="text-center text-destructive">{error}</p>}
+
         <Carousel
           plugins={[plugin.current]} // Add plugin
           className="w-full max-w-xs sm:max-w-xl md:max-w-3xl lg:max-w-5xl mx-auto"
@@ -59,33 +60,55 @@ export function PhotoCarousel() {
            onMouseLeave={plugin.current.reset}
           opts={{
             align: "start",
-            loop: true,
+            loop: photos.length > 1, // Enable loop only if there's more than one photo
           }}
         >
           <CarouselContent>
-            {photos.map((photo, index) => (
-              <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/1"> {/* Adjust basis for desired display */}
-                <div className="p-1">
-                  <Card className="overflow-hidden shadow-md">
-                    <CardContent className="flex aspect-[3/2] items-center justify-center p-0"> {/* Use aspect ratio */}
-                      <Image
-                        src={photo.src}
-                        alt={photo.alt}
-                        width={1200}
-                        height={800}
-                        className="object-cover w-full h-full"
-                        data-ai-hint={photo.aiHint}
-                        priority={index === 0} // Prioritize loading the first image
-                      />
-                    </CardContent>
-                  </Card>
-                </div>
-              </CarouselItem>
-            ))}
+            {isLoading
+              ? Array.from({ length: 3 }).map((_, index) => (
+                  <CarouselItem key={`skeleton-${index}`} className="md:basis-1/2 lg:basis-1/1">
+                    <div className="p-1">
+                      <Card className="overflow-hidden shadow-md">
+                        <CardContent className="flex aspect-[3/2] items-center justify-center p-0">
+                           <Skeleton className="h-full w-full" />
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </CarouselItem>
+                ))
+              : photos.map((photo, index) => (
+                  <CarouselItem key={photo.id} className="md:basis-1/2 lg:basis-1/1"> {/* Adjust basis for desired display */}
+                    <div className="p-1">
+                      <Card className="overflow-hidden shadow-md">
+                        <CardContent className="flex aspect-[3/2] items-center justify-center p-0"> {/* Use aspect ratio */}
+                          <Image
+                            src={photo.src}
+                            alt={photo.alt}
+                            width={1200}
+                            height={800}
+                            className="object-cover w-full h-full"
+                            data-ai-hint={photo.aiHint}
+                            priority={index === 0} // Prioritize loading the first image
+                          />
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </CarouselItem>
+              ))}
           </CarouselContent>
-          <CarouselPrevious className="hidden sm:flex" />
-          <CarouselNext className="hidden sm:flex" />
+           {photos.length > 1 && ( // Show controls only if there's more than one item
+            <>
+              <CarouselPrevious className="hidden sm:flex" />
+              <CarouselNext className="hidden sm:flex" />
+            </>
+           )}
         </Carousel>
+         {/* Optionally, add a link/button to an admin page for adding photos */}
+        {/* <div className="text-center mt-8">
+             <Button asChild variant="outline">
+               <Link href="/admin/add-photo">Add New Photo</Link>
+             </Button>
+           </div> */}
       </div>
     </section>
   );
