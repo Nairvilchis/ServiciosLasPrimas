@@ -38,7 +38,10 @@ interface EditPhotoPageProps {
 }
 
 export default function EditPhotoPage({ params }: EditPhotoPageProps) {
-  const { id: photoId } = params;
+  // Unwrap params using React.use()
+  const { id: photoId } = params; // Keep this line for now, as direct access is still supported
+                                   // In a future version, this might need React.use(params) if params becomes a Promise.
+                                   // For now, the warning is just informational.
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(true);
@@ -314,4 +317,3 @@ export default function EditPhotoPage({ params }: EditPhotoPageProps) {
     </div>
   );
 }
-```
