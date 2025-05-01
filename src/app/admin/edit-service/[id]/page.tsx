@@ -181,6 +181,10 @@ export default function EditServicePage({ params }: EditServicePageProps) {
                           <Skeleton className="h-4 w-24" />
                           <Skeleton className="h-10 w-full" />
                        </div>
+                        <div className="space-y-2">
+                         <Skeleton className="h-4 w-24" />
+                         <Skeleton className="h-10 w-full" />
+                       </div>
                        <Skeleton className="h-10 w-full" />
                  </CardContent>
              </Card>
@@ -315,4 +319,3 @@ export default function EditServicePage({ params }: EditServicePageProps) {
     </div>
   );
 }
-```
