@@ -2,7 +2,7 @@ import { Header } from '@/components/landing/Header';
 import { Hero } from '@/components/landing/Hero';
 import { Services } from '@/components/landing/Services';
 import { PhotoCarousel } from '@/components/landing/PhotoCarousel'; // Import the new component
-import { Testimonials } from '@/components/landing/Testimonials';
+// import { Testimonials } from '@/components/landing/Testimonials'; // Remove import
 import { ContactForm } from '@/components/landing/ContactForm';
 import { Footer } from '@/components/landing/Footer';
 import Link from 'next/link'; // Import Link
@@ -16,7 +16,7 @@ export default function Home() {
         <Hero />
         <Services />
         <PhotoCarousel /> {/* Add the photo carousel */}
-        <Testimonials />
+        {/* <Testimonials /> Remove component usage */}
         <ContactForm />
 
          {/* Temporary Admin Links - Consider moving to a dedicated admin section/layout */}
