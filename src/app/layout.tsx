@@ -15,7 +15,7 @@ const geistSans = Geist({
 // });
 
 export const metadata: Metadata = {
-  title: 'Party Planners - Tus Expertos en Eventos', // Updated title in Spanish
+  title: 'Servicios Las Primas - Tus Expertos en Eventos', // Updated title in Spanish
   description: '¡Ofrecemos Mesas de Dulces, Pasteles Personalizados, Renta de Mobiliario, Barra Libre y más para tu fiesta perfecta!', // Updated description in Spanish
 };
 

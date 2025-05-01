@@ -7,7 +7,7 @@ export function Header() {
       <div className="container flex h-14 items-center">
         <Link href="/" className="flex items-center space-x-2">
           <PartyPopper className="h-6 w-6 text-primary" />
-          <span className="font-bold">Party Planners</span>
+          <span className="font-bold">Servicios Las Primas</span>
         </Link>
         {/* Basic Navigation can be added here later */}
         {/* <nav className="ml-auto flex items-center space-x-4">

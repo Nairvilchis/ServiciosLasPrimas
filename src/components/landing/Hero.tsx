@@ -16,7 +16,7 @@ export function Hero() {
           ¡Vamos a Celebrar!
         </h1>
         <p className="mt-6 text-lg leading-8 text-secondary-foreground md:text-xl max-w-2xl mx-auto drop-shadow-sm"> {/* Added drop-shadow */}
-          Desde dulces delicias hasta montajes con estilo, Party Planners lleva la diversión a tu evento. Explora nuestros servicios y permítenos hacer tu celebración inolvidable.
+          Desde dulces delicias hasta montajes con estilo, Servicios Las Primas lleva la diversión a tu evento. Explora nuestros servicios y permítenos hacer tu celebración inolvidable.
         </p>
         <div className="mt-10 flex items-center justify-center gap-x-6">
           {/* Kept button styles, added slight shadow enhancement */}
@@ -46,3 +46,4 @@ export function Hero() {
 // animation: {
 //   'spin-slow': 'spin 3s linear infinite',
 // },
+
