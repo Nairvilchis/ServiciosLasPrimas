@@ -1,75 +1,78 @@
-import { LucideProps, IconNode } from 'lucide-react';
-import * as LucideIcons from 'lucide-react';
-// Assuming LucideIconName is a type exported from '@/lib/types'
-// This type should ideally be a union of string literals corresponding to valid Lucide icon names
-import { LucideIconName } from '@/lib/types';
 import React from 'react';
+import Image from 'next/image';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import * as LucideIcons from 'lucide-react';
+import { getServices } from '@/services/eventData'; // Fetch services data
+import type { Service, LucideIconName } from '@/lib/types'; // Import types
 
-// Assuming DefaultIcon is a valid React component imported or defined elsewhere.
-// Declare it here so TypeScript knows it exists and is a React Element type.
-// TODO: Import or define your actual DefaultIcon component
-declare const DefaultIcon: React.ElementType;
+// Define a DefaultIcon component as a fallback
+const DefaultIcon: React.ElementType = () => <LucideIcons.PartyPopper className="h-8 w-8 text-muted-foreground" />; // Example fallback
 
 /**
  * Gets the Lucide icon component based on its name.
- * @param iconName - The name of the icon.
- * @returns The Lucide icon component (as React.ElementType) or a default icon if not found.
+ * @param iconName - The name of the icon (must be a valid key in LucideIcons).
+ * @returns The Lucide icon component (as React.ElementType) or a default icon if not found/invalid.
  */
-function getIconComponent(iconName: LucideIconName | undefined): React.ElementType {
+function getIconComponent(iconName: LucideIconName | string | undefined): React.ElementType {
   if (!iconName) {
-    // If no icon name is provided, return the default icon component.
     return DefaultIcon;
   }
 
-  // Attempt to retrieve the icon component from the imported LucideIcons object.
-  // Use a type assertion to tell TypeScript that iconName is expected to be a key of LucideIcons.
+  // Check if iconName is a valid key in LucideIcons
   const IconComponent = LucideIcons[iconName as keyof typeof LucideIcons];
 
-  // Check if the retrieved item is likely a React component (a function or an object with $$typeof symbol).
-  // This provides a runtime check and helps TypeScript confirm the type.
+  // Check if the retrieved item is likely a React component
   if (typeof IconComponent === 'function' || (typeof IconComponent === 'object' && IconComponent !== null && '$$typeof' in IconComponent)) {
-     return IconComponent as React.ElementType;
+    return IconComponent as React.ElementType;
   }
 
-  // If the icon name exists in LucideIcons but the retrieved value is not a valid component,
-  // or if the iconName was provided but didn't match a key in LucideIcons,
-  // fall back to the default icon.
-  console.warn(`Ícono "${iconName}" no encontrado en LucideIcons o no es un componente válido.`);
+  // Fallback if the icon name is invalid or not found
+  console.warn(`Ícono "${iconName}" no encontrado en LucideIcons o no es un componente válido. Usando ícono predeterminado.`);
   return DefaultIcon;
 }
 
-// --- How to use getIconComponent in your Services component ---
-// Assuming you have a service object with an 'icon' property like:
-// const service = { name: 'Service Name', icon: 'Bell', description: '...' };
-
-// To render the icon, call getIconComponent with the service.icon:
-// const IconToRender = getIconComponent(service.icon);
-
-// Then use IconToRender as a component in your JSX, likely around where you render service details:
-// <IconToRender size={24} className="..." />
-// or using React.createElement:
-// React.createElement(IconToRender, { size: 24, className: "..." })
-
-// Define and export the Services component
-export function Services() {
-  // TODO: Add your service data and rendering logic here.
-  // You can use the getIconComponent helper function to render icons for each service.
+// Make Services a Server Component
+export async function Services() {
+  const services: Service[] = await getServices();
 
   return (
-    <div>
-      <h2>Servicios</h2> {/* Translated title */}
-      {/* Example usage of getIconComponent (replace with your actual data mapping) */}
-      {/*
-      Mapea tus datos de servicio y renderiza el icono para cada uno.
-      {services.map(service => (
-        <div key={service.id}>
-          <h3>{service.title}</h3>
-          <p>{service.description}</p>
-          {<getIconComponent(service.iconName) size={24} />} // Ejemplo de renderizado
+    <section id="services" className="py-20 md:py-28 bg-background">
+      <div className="container mx-auto px-4 md:px-6">
+        <h2 className="text-3xl font-bold tracking-tight text-center sm:text-4xl mb-12 text-primary">
+          Nuestros Servicios
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          {services.map((service) => {
+            const IconComponent = getIconComponent(service.iconName);
+            return (
+              <Card key={service.id} className="flex flex-col overflow-hidden shadow-lg transition-transform duration-300 hover:scale-105 hover:shadow-xl">
+                <div className="relative h-48 w-full">
+                  <Image
+                    src={service.image}
+                    alt={service.title}
+                    layout="fill"
+                    objectFit="cover"
+                    className=""
+                    data-ai-hint={service.aiHint}
+                    unoptimized // If using picsum or other external non-configured domains
+                  />
+                </div>
+                <CardHeader className="flex flex-row items-start gap-4 space-y-0 pt-4 pb-2">
+                   <div className="bg-primary/10 p-2 rounded-full">
+                       <IconComponent className="h-6 w-6 text-primary" />
+                   </div>
+                   <div className="flex-1">
+                      <CardTitle className="text-lg font-semibold">{service.title}</CardTitle>
+                   </div>
+                </CardHeader>
+                <CardContent className="flex-grow">
+                  <CardDescription>{service.description}</CardDescription>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
-      ))}
-      */}
-      <p>El contenido de los servicios va aquí.</p> {/* Translated placeholder */}
-    </div>
+      </div>
+    </section>
   );
 }
