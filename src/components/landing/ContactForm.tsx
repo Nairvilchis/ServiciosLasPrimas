@@ -1,3 +1,4 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -18,6 +19,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import React from "react";
+import { MessageSquare } from 'lucide-react'; // Using a generic message icon
+import Link from 'next/link';
 
 // Mock services for checkbox group
 const services = [
@@ -102,13 +105,17 @@ export function ContactForm() {
     }
   }
 
+  // Replace with your actual WhatsApp number (including country code without + or spaces)
+  const whatsappNumber = "1234567890"; // Example number
+  const whatsappLink = `https://wa.me/${whatsappNumber}`;
+
   return (
     <section id="contact" className="py-20 md:py-28 bg-background">
       <div className="container mx-auto px-4 md:px-6 max-w-3xl">
         <Card className="shadow-lg border-primary">
            <CardHeader className="text-center">
              <CardTitle className="text-3xl font-bold tracking-tight sm:text-4xl text-primary">Get a Quote</CardTitle>
-             <CardDescription>Fill out the form below to discuss your event needs.</CardDescription>
+             <CardDescription>Fill out the form below or contact us directly.</CardDescription>
            </CardHeader>
            <CardContent>
              <Form {...form}>
@@ -244,6 +251,17 @@ export function ContactForm() {
                  </Button>
                </form>
              </Form>
+
+              {/* WhatsApp Link */}
+             <div className="mt-6 text-center">
+                <p className="text-sm text-muted-foreground mb-2">Or message us directly on WhatsApp:</p>
+                 <Button variant="outline" asChild>
+                    <Link href={whatsappLink} target="_blank" rel="noopener noreferrer">
+                       <MessageSquare className="mr-2 h-4 w-4" /> Chat on WhatsApp
+                    </Link>
+                 </Button>
+             </div>
+
            </CardContent>
         </Card>
       </div>
