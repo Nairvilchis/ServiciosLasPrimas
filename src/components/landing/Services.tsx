@@ -8,7 +8,7 @@ import React from 'react';
 // Assuming DefaultIcon is a valid React component imported or defined elsewhere.
 // Declare it here so TypeScript knows it exists and is a React Element type.
 // TODO: Import or define your actual DefaultIcon component
-declare const DefaultIcon: React.ElementType; 
+declare const DefaultIcon: React.ElementType;
 
 /**
  * Gets the Lucide icon component based on its name.
@@ -34,7 +34,7 @@ function getIconComponent(iconName: LucideIconName | undefined): React.ElementTy
   // If the icon name exists in LucideIcons but the retrieved value is not a valid component,
   // or if the iconName was provided but didn't match a key in LucideIcons,
   // fall back to the default icon.
-  console.warn(`Icon "${iconName}" not found in LucideIcons or is not a valid component.`);
+  console.warn(`Ícono "${iconName}" no encontrado en LucideIcons o no es un componente válido.`);
   return DefaultIcon;
 }
 
@@ -46,7 +46,7 @@ function getIconComponent(iconName: LucideIconName | undefined): React.ElementTy
 // const IconToRender = getIconComponent(service.icon);
 
 // Then use IconToRender as a component in your JSX, likely around where you render service details:
-// <IconToRender size={24} className="..." /> 
+// <IconToRender size={24} className="..." />
 // or using React.createElement:
 // React.createElement(IconToRender, { size: 24, className: "..." })
 
@@ -57,19 +57,19 @@ export function Services() {
 
   return (
     <div>
-      <h2>Services</h2>
+      <h2>Servicios</h2> {/* Translated title */}
       {/* Example usage of getIconComponent (replace with your actual data mapping) */}
-      {/* 
-      서비스 데이터를 매핑하고 각 서비스에 대한 아이콘을 렌더링하세요.
+      {/*
+      Mapea tus datos de servicio y renderiza el icono para cada uno.
       {services.map(service => (
         <div key={service.id}>
           <h3>{service.title}</h3>
           <p>{service.description}</p>
-          {<getIconComponent(service.iconName) size={24} />} // Example rendering
+          {<getIconComponent(service.iconName) size={24} />} // Ejemplo de renderizado
         </div>
       ))}
       */}
-      <p>Service content goes here.</p>
+      <p>El contenido de los servicios va aquí.</p> {/* Translated placeholder */}
     </div>
   );
 }

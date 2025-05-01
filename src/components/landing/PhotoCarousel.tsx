@@ -35,7 +35,7 @@ export function PhotoCarousel() {
         setError(null);
       } catch (err) {
         console.error("Failed to fetch photos:", err);
-        setError("Could not load gallery photos at this time.");
+        setError("No se pudieron cargar las fotos de la galería en este momento.");
       } finally {
         setIsLoading(false);
       }
@@ -48,7 +48,7 @@ export function PhotoCarousel() {
     <section id="gallery" className="py-20 md:py-28 bg-muted">
       <div className="container mx-auto px-4 md:px-6">
         <h2 className="text-3xl font-bold tracking-tight text-center sm:text-4xl mb-12 text-primary">
-          Event Gallery
+          Galería de Eventos
         </h2>
 
         {error && <p className="text-center text-destructive">{error}</p>}

@@ -24,12 +24,12 @@ import Link from 'next/link';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton'; // Import Skeleton
 
-// Zod schema for input validation (can be partial for updates)
+// Zod schema for input validation (can be partial for updates) - Translated messages
 const ServiceUpdateSchema = z.object({
-  title: z.string().min(3, "Title must be at least 3 characters.").optional(),
-  description: z.string().min(10, "Description must be at least 10 characters.").optional(),
-  iconName: z.string().min(1, "Icon name is required.").optional(),
-  image: z.string().url("Image must be a valid URL.").optional(),
+  title: z.string().min(3, "El título debe tener al menos 3 caracteres.").optional(),
+  description: z.string().min(10, "La descripción debe tener al menos 10 caracteres.").optional(),
+  iconName: z.string().min(1, "El nombre del ícono es requerido.").optional(),
+  image: z.string().url("La imagen debe ser una URL válida.").optional(),
   aiHint: z.string().optional(), // Allow empty string
 });
 
@@ -55,7 +55,7 @@ export default function EditServicePage({ params }: EditServicePageProps) {
         const service = await getServiceById(serviceId);
         if (!service) {
           setNotFound(true);
-          toast({ title: "Error", description: "Service not found.", variant: "destructive" });
+          toast({ title: "Error", description: "Servicio no encontrado.", variant: "destructive" });
           setIsLoadingData(false);
           return { title: '', description: '', iconName: '', image: '', aiHint: '' }; // Return default empty values
         }
@@ -67,8 +67,8 @@ export default function EditServicePage({ params }: EditServicePageProps) {
         setIsLoadingData(false);
         return defaultValues;
       } catch (error) {
-        console.error("Failed to fetch service data:", error);
-        toast({ title: "Error", description: "Could not load service data.", variant: "destructive" });
+        console.error("Error al cargar datos del servicio:", error);
+        toast({ title: "Error", description: "No se pudieron cargar los datos del servicio.", variant: "destructive" });
         setIsLoadingData(false);
         setNotFound(true); // Treat fetch error as not found for UI purposes
         return { title: '', description: '', iconName: '', image: '', aiHint: '' };
@@ -107,8 +107,8 @@ export default function EditServicePage({ params }: EditServicePageProps) {
 
     if (Object.keys(changedValues).length === 0) {
         toast({
-            title: "No Changes",
-            description: "You haven't made any changes to submit.",
+            title: "Sin Cambios",
+            description: "No has realizado ningún cambio para enviar.",
         });
         return;
     }
@@ -128,7 +128,7 @@ export default function EditServicePage({ params }: EditServicePageProps) {
 
       if (result.success) {
         toast({
-          title: 'Success!',
+          title: '¡Éxito!',
           description: result.message,
         });
          // Optionally redirect or update form default values after successful update
@@ -137,18 +137,18 @@ export default function EditServicePage({ params }: EditServicePageProps) {
       } else {
         toast({
           title: 'Error',
-          description: result.message || "Failed to update service.",
+          description: result.message || "Error al actualizar el servicio.",
           variant: 'destructive',
         });
         if (result.errors) {
-          console.error("Field Errors:", result.errors);
+          console.error("Errores de campo:", result.errors);
         }
       }
     } catch (error) {
-      console.error('Submission error:', error);
+      console.error('Error de envío:', error);
       toast({
         title: 'Error',
-        description: 'An unexpected error occurred. Please try again.',
+        description: 'Ocurrió un error inesperado. Por favor, inténtalo de nuevo.',
         variant: 'destructive',
       });
     } finally {
@@ -196,11 +196,11 @@ export default function EditServicePage({ params }: EditServicePageProps) {
    if (notFound) {
        return (
            <div className="container mx-auto px-4 py-12 md:py-16 max-w-2xl text-center">
-              <h1 className="text-2xl font-bold mb-4 text-destructive">Service Not Found</h1>
-              <p className="text-muted-foreground mb-6">The service you are trying to edit does not exist.</p>
+              <h1 className="text-2xl font-bold mb-4 text-destructive">Servicio No Encontrado</h1>
+              <p className="text-muted-foreground mb-6">El servicio que intentas editar no existe.</p>
               <Button variant="outline" asChild>
                 <Link href="/admin/services">
-                  <ArrowLeft className="mr-2 h-4 w-4" /> Back to Services List
+                  <ArrowLeft className="mr-2 h-4 w-4" /> Volver a la Lista de Servicios
                 </Link>
               </Button>
            </div>
@@ -212,13 +212,13 @@ export default function EditServicePage({ params }: EditServicePageProps) {
     <div className="container mx-auto px-4 py-12 md:py-16 max-w-2xl">
       <Button variant="outline" size="sm" asChild className="mb-4">
          <Link href="/admin/services">
-           <ArrowLeft className="mr-2 h-4 w-4" /> Back to Services List
+           <ArrowLeft className="mr-2 h-4 w-4" /> Volver a la Lista de Servicios
          </Link>
       </Button>
       <Card className="shadow-lg">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold text-primary">Edit Service</CardTitle>
-          <CardDescription>Modify the details for this service.</CardDescription>
+          <CardTitle className="text-2xl font-bold text-primary">Editar Servicio</CardTitle>
+          <CardDescription>Modifica los detalles de este servicio.</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -228,9 +228,9 @@ export default function EditServicePage({ params }: EditServicePageProps) {
                 name="title"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Service Title</FormLabel>
+                    <FormLabel>Título del Servicio</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., Balloon Arch Creations" {...field} value={field.value ?? ''} disabled={isSubmitting} />
+                      <Input placeholder="ej. Creaciones con Arcos de Globos" {...field} value={field.value ?? ''} disabled={isSubmitting} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -242,10 +242,10 @@ export default function EditServicePage({ params }: EditServicePageProps) {
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Description</FormLabel>
+                    <FormLabel>Descripción</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Describe the service..."
+                        placeholder="Describe el servicio..."
                         className="resize-y min-h-[100px]"
                         {...field}
                         value={field.value ?? ''}
@@ -262,12 +262,12 @@ export default function EditServicePage({ params }: EditServicePageProps) {
                 name="iconName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Icon Name (from Lucide)</FormLabel>
+                    <FormLabel>Nombre del Ícono (de Lucide)</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., PartyPopper" {...field} value={field.value ?? ''} disabled={isSubmitting} />
+                      <Input placeholder="ej. PartyPopper" {...field} value={field.value ?? ''} disabled={isSubmitting} />
                     </FormControl>
                      <FormDescription>
-                       Find icons at <a href="https://lucide.dev/icons/" target="_blank" rel="noopener noreferrer" className="underline text-primary">lucide.dev/icons</a>. Use the exact name (PascalCase).
+                       Encuentra íconos en <a href="https://lucide.dev/icons/" target="_blank" rel="noopener noreferrer" className="underline text-primary">lucide.dev/icons</a>. Usa el nombre exacto (PascalCase).
                      </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -279,12 +279,12 @@ export default function EditServicePage({ params }: EditServicePageProps) {
                 name="image"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Image URL</FormLabel>
+                    <FormLabel>URL de la Imagen</FormLabel>
                     <FormControl>
                       <Input type="url" placeholder="https://picsum.photos/seed/yourservice/600/400" {...field} value={field.value ?? ''} disabled={isSubmitting} />
                     </FormControl>
                     <FormDescription>
-                      Use a full URL. For placeholders: `https://picsum.photos/seed/your-seed/600/400`
+                      Usa una URL completa. Para marcadores: `https://picsum.photos/seed/tu-semilla/600/400`
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -296,13 +296,13 @@ export default function EditServicePage({ params }: EditServicePageProps) {
                  name="aiHint"
                  render={({ field }) => (
                    <FormItem>
-                     <FormLabel>AI Hint (Optional)</FormLabel>
+                     <FormLabel>Pista para IA (Opcional)</FormLabel>
                      <FormControl>
                        {/* Ensure value is controlled and never null/undefined */}
-                       <Input placeholder="e.g., colorful balloon arch" {...field} value={field.value ?? ''} disabled={isSubmitting} />
+                       <Input placeholder="ej. arco de globos colorido" {...field} value={field.value ?? ''} disabled={isSubmitting} />
                      </FormControl>
                      <FormDescription>
-                        Keywords for image search/generation.
+                        Palabras clave para búsqueda/generación de imágenes.
                      </FormDescription>
                      <FormMessage />
                    </FormItem>
@@ -311,7 +311,7 @@ export default function EditServicePage({ params }: EditServicePageProps) {
 
 
               <Button type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90" disabled={isSubmitting || isLoadingData}>
-                {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</> : 'Save Changes'}
+                {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Guardando...</> : 'Guardar Cambios'}
               </Button>
             </form>
           </Form>

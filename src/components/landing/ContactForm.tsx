@@ -22,41 +22,41 @@ import React from "react";
 import { MessageSquare } from 'lucide-react'; // Using a generic message icon
 import Link from 'next/link';
 
-// Mock services for checkbox group
+// Mock services for checkbox group (Translated)
 const services = [
-  { id: "candyBar", label: "Candy Bar" },
-  { id: "cakes", label: "Custom Cakes" },
-  { id: "rentals", label: "Table & Chair Rentals" },
-  { id: "openBar", label: "Open Bar Service" },
-  { id: "other", label: "Other (Specify below)" },
+  { id: "candyBar", label: "Mesa de Dulces" },
+  { id: "cakes", label: "Pasteles Personalizados" },
+  { id: "rentals", label: "Renta de Mesas y Sillas" },
+  { id: "openBar", label: "Servicio de Barra Libre" },
+  { id: "other", label: "Otro (Especificar abajo)" },
 ] as const; // Use 'as const' for type safety
 
-// Define Zod schema for validation
+// Define Zod schema for validation (Translated messages)
 const formSchema = z.object({
-  name: z.string().min(2, { message: "Name must be at least 2 characters." }),
-  email: z.string().email({ message: "Please enter a valid email address." }),
+  name: z.string().min(2, { message: "El nombre debe tener al menos 2 caracteres." }),
+  email: z.string().email({ message: "Por favor ingresa un correo electrónico válido." }),
   phone: z.string().optional(),
   eventDate: z.string().optional(), // Consider using a date picker component later
   services: z.array(z.string()).refine((value) => value.some((item) => item), {
-    message: "You have to select at least one service.",
+    message: "Debes seleccionar al menos un servicio.",
   }),
-  message: z.string().min(10, { message: "Message must be at least 10 characters." }),
+  message: z.string().min(10, { message: "El mensaje debe tener al menos 10 caracteres." }),
 });
 
 type FormData = z.infer<typeof formSchema>;
 
-// Mock server action (replace with actual API call or server action later)
+// Mock server action (Translated messages)
 async function submitInquiry(data: FormData): Promise<{ success: boolean; message: string }> {
-  console.log("Submitting inquiry:", data);
+  console.log("Enviando consulta:", data);
   // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 1000));
 
   // Simulate success/failure
   const success = Math.random() > 0.2; // 80% success rate
   if (success) {
-    return { success: true, message: "Inquiry sent successfully! We'll be in touch soon." };
+    return { success: true, message: "¡Consulta enviada con éxito! Nos pondremos en contacto pronto." };
   } else {
-    return { success: false, message: "Failed to send inquiry. Please try again later." };
+    return { success: false, message: "Error al enviar la consulta. Por favor, inténtalo de nuevo más tarde." };
   }
 }
 
@@ -82,7 +82,7 @@ export function ContactForm() {
       const result = await submitInquiry(values);
       if (result.success) {
         toast({
-          title: "Success!",
+          title: "¡Éxito!",
           description: result.message,
         });
         form.reset(); // Reset form on success
@@ -94,10 +94,10 @@ export function ContactForm() {
         });
       }
     } catch (error) {
-      console.error("Submission error:", error);
+      console.error("Error de envío:", error);
       toast({
         title: "Error",
-        description: "An unexpected error occurred. Please try again.",
+        description: "Ocurrió un error inesperado. Por favor, inténtalo de nuevo.",
         variant: "destructive",
       });
     } finally {
@@ -114,8 +114,8 @@ export function ContactForm() {
       <div className="container mx-auto px-4 md:px-6 max-w-3xl">
         <Card className="shadow-lg border-primary">
            <CardHeader className="text-center">
-             <CardTitle className="text-3xl font-bold tracking-tight sm:text-4xl text-primary">Get a Quote</CardTitle>
-             <CardDescription>Fill out the form below or contact us directly.</CardDescription>
+             <CardTitle className="text-3xl font-bold tracking-tight sm:text-4xl text-primary">Obtén una Cotización</CardTitle>
+             <CardDescription>Completa el formulario o contáctanos directamente.</CardDescription>
            </CardHeader>
            <CardContent>
              <Form {...form}>
@@ -126,9 +126,9 @@ export function ContactForm() {
                       name="name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Name</FormLabel>
+                          <FormLabel>Nombre</FormLabel>
                           <FormControl>
-                            <Input placeholder="Your Name" {...field} disabled={isSubmitting} />
+                            <Input placeholder="Tu Nombre" {...field} disabled={isSubmitting} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -139,9 +139,9 @@ export function ContactForm() {
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Email</FormLabel>
+                          <FormLabel>Correo Electrónico</FormLabel>
                           <FormControl>
-                            <Input type="email" placeholder="your.email@example.com" {...field} disabled={isSubmitting} />
+                            <Input type="email" placeholder="tu.correo@ejemplo.com" {...field} disabled={isSubmitting} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -154,9 +154,9 @@ export function ContactForm() {
                       name="phone"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Phone (Optional)</FormLabel>
+                          <FormLabel>Teléfono (Opcional)</FormLabel>
                           <FormControl>
-                            <Input type="tel" placeholder="Your Phone Number" {...field} disabled={isSubmitting} />
+                            <Input type="tel" placeholder="Tu Número de Teléfono" {...field} disabled={isSubmitting} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -167,7 +167,7 @@ export function ContactForm() {
                        name="eventDate"
                        render={({ field }) => (
                          <FormItem>
-                           <FormLabel>Event Date (Optional)</FormLabel>
+                           <FormLabel>Fecha del Evento (Opcional)</FormLabel>
                            <FormControl>
                              {/* Basic input for now, replace with Calendar/DatePicker later */}
                              <Input type="date" {...field} disabled={isSubmitting} />
@@ -184,7 +184,7 @@ export function ContactForm() {
                     render={() => (
                       <FormItem>
                         <div className="mb-4">
-                          <FormLabel className="text-base">Services Interested In</FormLabel>
+                          <FormLabel className="text-base">Servicios de Interés</FormLabel>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                           {services.map((item) => (
@@ -233,10 +233,10 @@ export function ContactForm() {
                    name="message"
                    render={({ field }) => (
                      <FormItem>
-                       <FormLabel>Message / Event Details</FormLabel>
+                       <FormLabel>Mensaje / Detalles del Evento</FormLabel>
                        <FormControl>
                          <Textarea
-                           placeholder="Tell us about your event..."
+                           placeholder="Cuéntanos sobre tu evento..."
                            className="resize-y min-h-[100px]"
                            {...field}
                            disabled={isSubmitting}
@@ -247,17 +247,17 @@ export function ContactForm() {
                    )}
                  />
                  <Button type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90" disabled={isSubmitting}>
-                    {isSubmitting ? "Sending..." : "Send Inquiry"}
+                    {isSubmitting ? "Enviando..." : "Enviar Consulta"}
                  </Button>
                </form>
              </Form>
 
               {/* WhatsApp Link */}
              <div className="mt-6 text-center">
-                <p className="text-sm text-muted-foreground mb-2">Or message us directly on WhatsApp:</p>
+                <p className="text-sm text-muted-foreground mb-2">O envíanos un mensaje directamente por WhatsApp:</p>
                  <Button variant="outline" asChild>
                     <Link href={whatsappLink} target="_blank" rel="noopener noreferrer">
-                       <MessageSquare className="mr-2 h-4 w-4" /> Chat on WhatsApp
+                       <MessageSquare className="mr-2 h-4 w-4" /> Chatear por WhatsApp
                     </Link>
                  </Button>
              </div>

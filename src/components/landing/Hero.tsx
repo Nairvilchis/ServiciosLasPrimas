@@ -16,17 +16,17 @@ export function Hero() {
 
       <div className="container mx-auto px-4 md:px-6 text-center relative z-10">
         <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl text-primary-foreground">
-          Let's Celebrate!
+          ¡Vamos a Celebrar!
         </h1>
         <p className="mt-6 text-lg leading-8 text-secondary-foreground md:text-xl max-w-2xl mx-auto">
-          From sweet treats to stylish setups, Party Planners brings the fun to your event. Explore our services and let us make your celebration unforgettable.
+          Desde dulces delicias hasta montajes con estilo, Party Planners lleva la diversión a tu evento. Explora nuestros servicios y permítenos hacer tu celebración inolvidable.
         </p>
         <div className="mt-10 flex items-center justify-center gap-x-6">
           <Button asChild size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90 shadow-lg transition-transform hover:scale-105">
-            <Link href="#contact">Plan Your Party</Link>
+            <Link href="#contact">Planea Tu Fiesta</Link>
           </Button>
           <Button asChild variant="outline" size="lg" className="shadow-md transition-transform hover:scale-105">
-            <Link href="#services">See Our Services</Link>
+            <Link href="#services">Ver Nuestros Servicios</Link>
           </Button>
         </div>
       </div>

@@ -9,7 +9,7 @@ export function Footer() {
       <div className="container mx-auto px-4 md:px-6 flex flex-col md:flex-row justify-between items-center">
         <div className="flex items-center space-x-2 mb-4 md:mb-0">
           <PartyPopper className="h-5 w-5 text-primary" />
-          <span className="text-sm">&copy; {currentYear} Party Planners. All rights reserved.</span>
+          <span className="text-sm">&copy; {currentYear} Party Planners. Todos los derechos reservados.</span>
         </div>
         <div className="flex space-x-6">
            {/* Add actual contact info later */}

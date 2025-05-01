@@ -15,8 +15,8 @@ const geistSans = Geist({
 // });
 
 export const metadata: Metadata = {
-  title: 'Party Planners - Your Event Experts', // Updated title
-  description: 'Offering Candy Bars, Custom Cakes, Rentals, Open Bar, and more for your perfect party!', // Updated description
+  title: 'Party Planners - Tus Expertos en Eventos', // Updated title in Spanish
+  description: '¡Ofrecemos Mesas de Dulces, Pasteles Personalizados, Renta de Mobiliario, Barra Libre y más para tu fiesta perfecta!', // Updated description in Spanish
 };
 
 export default function RootLayout({
@@ -25,7 +25,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="es"> {/* Change language to Spanish */}
       <body className={`${geistSans.variable} font-sans antialiased`}> {/* Use font-sans utility */}
         {children}
         <Toaster /> {/* Add Toaster here */}

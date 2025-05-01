@@ -40,8 +40,8 @@ export default function ManageServicesPage() {
         setServices(fetchedServices);
         setError(null);
       } catch (err) {
-        console.error("Failed to fetch services:", err);
-        setError("Could not load services. Please try again later.");
+        console.error("Error al cargar servicios:", err);
+        setError("No se pudieron cargar los servicios. Por favor, inténtalo de nuevo más tarde.");
       } finally {
         setIsLoading(false);
       }
@@ -60,7 +60,7 @@ export default function ManageServicesPage() {
       const result = await deleteServiceAction(serviceToDelete.id);
       if (result.success) {
         toast({
-          title: 'Success!',
+          title: '¡Éxito!',
           description: result.message,
         });
         // Optimistically remove from state or refetch
@@ -68,7 +68,7 @@ export default function ManageServicesPage() {
       } else {
         toast({
           title: 'Error',
-          description: result.message || 'Failed to delete service.',
+          description: result.message || 'Error al eliminar el servicio.',
           variant: 'destructive',
         });
       }
@@ -81,13 +81,13 @@ export default function ManageServicesPage() {
       <div className="flex justify-between items-center mb-6">
         <Button variant="outline" size="sm" asChild>
           <Link href="/">
-            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Home
+            <ArrowLeft className="mr-2 h-4 w-4" /> Volver al Inicio
           </Link>
         </Button>
-        <h1 className="text-2xl font-bold text-primary">Manage Services</h1>
+        <h1 className="text-2xl font-bold text-primary">Gestionar Servicios</h1>
         <Button asChild>
           <Link href="/admin/add-service">
-            <PlusCircle className="mr-2 h-4 w-4" /> Add New Service
+            <PlusCircle className="mr-2 h-4 w-4" /> Añadir Nuevo Servicio
           </Link>
         </Button>
       </div>
@@ -96,8 +96,8 @@ export default function ManageServicesPage() {
 
       <Card className="shadow-lg">
         <CardHeader>
-          <CardTitle>Current Services</CardTitle>
-          <CardDescription>View, edit, or delete existing services.</CardDescription>
+          <CardTitle>Servicios Actuales</CardTitle>
+          <CardDescription>Ver, editar o eliminar servicios existentes.</CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -107,15 +107,15 @@ export default function ManageServicesPage() {
               <Skeleton className="h-10 w-full" />
             </div>
           ) : services.length === 0 && !error ? (
-             <p className="text-center text-muted-foreground py-4">No services found. Add one to get started!</p>
+             <p className="text-center text-muted-foreground py-4">No se encontraron servicios. ¡Añade uno para empezar!</p>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[80px]">Image</TableHead>
-                  <TableHead>Title</TableHead>
-                  <TableHead className="hidden md:table-cell">Description</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead className="w-[80px]">Imagen</TableHead>
+                  <TableHead>Título</TableHead>
+                  <TableHead className="hidden md:table-cell">Descripción</TableHead>
+                  <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -137,10 +137,10 @@ export default function ManageServicesPage() {
                     </TableCell>
                     <TableCell className="text-right">
                        <div className="flex justify-end gap-2">
-                          <Button variant="outline" size="sm" asChild title="Edit">
+                          <Button variant="outline" size="sm" asChild title="Editar">
                             <Link href={`/admin/edit-service/${service.id}`}>
                                 <Edit className="h-4 w-4" />
-                                <span className="sr-only">Edit</span>
+                                <span className="sr-only">Editar</span>
                              </Link>
                           </Button>
                           <Button
@@ -148,14 +148,14 @@ export default function ManageServicesPage() {
                              size="sm"
                              onClick={() => handleDeleteClick(service)}
                              disabled={isDeleting && serviceToDelete?.id === service.id}
-                             title="Delete"
+                             title="Eliminar"
                            >
                              {isDeleting && serviceToDelete?.id === service.id ? (
                                 <Loader2 className="h-4 w-4 animate-spin" />
                              ) : (
                                <Trash2 className="h-4 w-4" />
                              )}
-                             <span className="sr-only">Delete</span>
+                             <span className="sr-only">Eliminar</span>
                            </Button>
                        </div>
                     </TableCell>
@@ -171,17 +171,17 @@ export default function ManageServicesPage() {
        <AlertDialog open={!!serviceToDelete} onOpenChange={(open) => !open && setServiceToDelete(null)}>
          <AlertDialogContent>
            <AlertDialogHeader>
-             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+             <AlertDialogTitle>¿Estás absolutamente seguro?</AlertDialogTitle>
              <AlertDialogDescription>
-               This action cannot be undone. This will permanently delete the service
+               Esta acción no se puede deshacer. Esto eliminará permanentemente el servicio
                <span className="font-semibold"> "{serviceToDelete?.title}"</span>.
              </AlertDialogDescription>
            </AlertDialogHeader>
            <AlertDialogFooter>
-             <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+             <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
              <AlertDialogAction onClick={handleConfirmDelete} disabled={isDeleting} className="bg-destructive hover:bg-destructive/90">
                {isDeleting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-               Delete
+               Eliminar
              </AlertDialogAction>
            </AlertDialogFooter>
          </AlertDialogContent>

@@ -22,13 +22,13 @@ import { addServiceAction } from '@/app/actions/eventActions';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 
-// Re-use the Zod schema from actions (or define it here if preferred)
+// Re-use the Zod schema from actions (or define it here if preferred) - Translated messages
 const ServiceInputSchema = z.object({
-  title: z.string().min(3, "Title must be at least 3 characters."),
-  description: z.string().min(10, "Description must be at least 10 characters."),
+  title: z.string().min(3, "El título debe tener al menos 3 caracteres."),
+  description: z.string().min(10, "La descripción debe tener al menos 10 caracteres."),
   // Consider a select or autocomplete for icon names in a real app
-  iconName: z.string().min(1, "Icon name is required (e.g., 'CakeSlice', 'Wine'). See lucide.dev for names."),
-  image: z.string().url("Image must be a valid URL (e.g., from picsum.photos or your storage)."),
+  iconName: z.string().min(1, "Se requiere el nombre del ícono (ej. 'CakeSlice', 'Wine'). Ver lucide.dev para nombres."),
+  image: z.string().url("La imagen debe ser una URL válida (ej. de picsum.photos o tu almacenamiento)."),
   aiHint: z.string().optional().default(""),
 });
 
@@ -63,27 +63,27 @@ export default function AddServicePage() {
 
       if (result.success) {
         toast({
-          title: 'Success!',
+          title: '¡Éxito!',
           description: result.message,
         });
         form.reset(); // Reset form on success
       } else {
         toast({
           title: 'Error',
-          description: result.message || "Failed to add service.",
+          description: result.message || "Error al añadir el servicio.",
           variant: 'destructive',
         });
         // Optionally display field-specific errors if available
         if (result.errors) {
           // You might want to map these errors to form fields if using react-hook-form's error handling more deeply
-          console.error("Field Errors:", result.errors);
+          console.error("Errores de campo:", result.errors);
         }
       }
     } catch (error) {
-      console.error('Submission error:', error);
+      console.error('Error de envío:', error);
       toast({
         title: 'Error',
-        description: 'An unexpected error occurred. Please try again.',
+        description: 'Ocurrió un error inesperado. Por favor, inténtalo de nuevo.',
         variant: 'destructive',
       });
     } finally {
@@ -95,13 +95,13 @@ export default function AddServicePage() {
     <div className="container mx-auto px-4 py-12 md:py-16 max-w-2xl">
       <Button variant="outline" size="sm" asChild className="mb-4">
          <Link href="/">
-           <ArrowLeft className="mr-2 h-4 w-4" /> Back to Home
+           <ArrowLeft className="mr-2 h-4 w-4" /> Volver al Inicio
          </Link>
       </Button>
       <Card className="shadow-lg">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold text-primary">Add New Service</CardTitle>
-          <CardDescription>Fill in the details for the new service.</CardDescription>
+          <CardTitle className="text-2xl font-bold text-primary">Añadir Nuevo Servicio</CardTitle>
+          <CardDescription>Rellena los detalles para el nuevo servicio.</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -111,9 +111,9 @@ export default function AddServicePage() {
                 name="title"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Service Title</FormLabel>
+                    <FormLabel>Título del Servicio</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., Balloon Arch Creations" {...field} disabled={isSubmitting} />
+                      <Input placeholder="ej. Creaciones con Arcos de Globos" {...field} disabled={isSubmitting} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -125,10 +125,10 @@ export default function AddServicePage() {
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Description</FormLabel>
+                    <FormLabel>Descripción</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Describe the service..."
+                        placeholder="Describe el servicio..."
                         className="resize-y min-h-[100px]"
                         {...field}
                         disabled={isSubmitting}
@@ -144,12 +144,12 @@ export default function AddServicePage() {
                 name="iconName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Icon Name (from Lucide)</FormLabel>
+                    <FormLabel>Nombre del Ícono (de Lucide)</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., PartyPopper" {...field} disabled={isSubmitting} />
+                      <Input placeholder="ej. PartyPopper" {...field} disabled={isSubmitting} />
                     </FormControl>
                      <FormDescription>
-                       Find icons at <a href="https://lucide.dev/icons/" target="_blank" rel="noopener noreferrer" className="underline text-primary">lucide.dev/icons</a>. Use the exact name (PascalCase).
+                       Encuentra íconos en <a href="https://lucide.dev/icons/" target="_blank" rel="noopener noreferrer" className="underline text-primary">lucide.dev/icons</a>. Usa el nombre exacto (PascalCase).
                      </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -161,12 +161,12 @@ export default function AddServicePage() {
                 name="image"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Image URL</FormLabel>
+                    <FormLabel>URL de la Imagen</FormLabel>
                     <FormControl>
                       <Input type="url" placeholder="https://picsum.photos/seed/newservice/600/400" {...field} disabled={isSubmitting} />
                     </FormControl>
                     <FormDescription>
-                      Use a full URL. For placeholders: `https://picsum.photos/seed/your-seed/600/400`
+                      Usa una URL completa. Para marcadores: `https://picsum.photos/seed/tu-semilla/600/400`
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -178,12 +178,12 @@ export default function AddServicePage() {
                 name="aiHint"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>AI Hint (Optional)</FormLabel>
+                    <FormLabel>Pista para IA (Opcional)</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., colorful balloon arch" {...field} disabled={isSubmitting} />
+                      <Input placeholder="ej. arco de globos colorido" {...field} disabled={isSubmitting} />
                     </FormControl>
                     <FormDescription>
-                      Keywords for image search/generation (if using real images later).
+                      Palabras clave para búsqueda/generación de imágenes (si usas imágenes reales más tarde).
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -192,7 +192,7 @@ export default function AddServicePage() {
 
 
               <Button type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90" disabled={isSubmitting}>
-                {isSubmitting ? 'Adding...' : 'Add Service'}
+                {isSubmitting ? 'Añadiendo...' : 'Añadir Servicio'}
               </Button>
             </form>
           </Form>

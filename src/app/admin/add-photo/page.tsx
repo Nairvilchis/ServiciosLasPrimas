@@ -22,10 +22,10 @@ import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import Image from 'next/image'; // Import Image for preview
 
-// Re-use the Zod schema from actions
+// Re-use the Zod schema from actions - Translated messages
 const PhotoInputSchema = z.object({
-  src: z.string().url("Source must be a valid URL."),
-  alt: z.string().min(3, "Alt text must be at least 3 characters."),
+  src: z.string().url("La fuente debe ser una URL válida."),
+  alt: z.string().min(3, "El texto alternativo debe tener al menos 3 caracteres."),
   aiHint: z.string().optional().default(""),
 });
 
@@ -71,7 +71,7 @@ export default function AddPhotoPage() {
 
       if (result.success) {
         toast({
-          title: 'Success!',
+          title: '¡Éxito!',
           description: result.message,
         });
         form.reset(); // Reset form on success
@@ -79,19 +79,19 @@ export default function AddPhotoPage() {
       } else {
         toast({
           title: 'Error',
-          description: result.message || "Failed to add photo.",
+          description: result.message || "Error al añadir la foto.",
           variant: 'destructive',
         });
          if (result.errors) {
-           console.error("Field Errors:", result.errors);
+           console.error("Errores de campo:", result.errors);
          }
       }
     } catch (error) {
-      console.error('Submission error:', error);
-      const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred.";
+      console.error('Error de envío:', error);
+      const errorMessage = error instanceof Error ? error.message : "Ocurrió un error inesperado.";
       toast({
         title: 'Error',
-        description: `An unexpected error occurred: ${errorMessage}. Please try again.`,
+        description: `Ocurrió un error inesperado: ${errorMessage}. Por favor, inténtalo de nuevo.`,
         variant: 'destructive',
       });
     } finally {
@@ -103,13 +103,13 @@ export default function AddPhotoPage() {
     <div className="container mx-auto px-4 py-12 md:py-16 max-w-2xl">
         <Button variant="outline" size="sm" asChild className="mb-4">
            <Link href="/">
-             <ArrowLeft className="mr-2 h-4 w-4" /> Back to Home
+             <ArrowLeft className="mr-2 h-4 w-4" /> Volver al Inicio
            </Link>
         </Button>
       <Card className="shadow-lg">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold text-primary">Add New Gallery Photo</CardTitle>
-          <CardDescription>Provide the details for the new gallery image.</CardDescription>
+          <CardTitle className="text-2xl font-bold text-primary">Añadir Nueva Foto a la Galería</CardTitle>
+          <CardDescription>Proporciona los detalles para la nueva imagen de la galería.</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -119,12 +119,12 @@ export default function AddPhotoPage() {
                 name="src"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Image Source URL</FormLabel>
+                    <FormLabel>URL de Origen de la Imagen</FormLabel>
                     <FormControl>
                       <Input type="url" placeholder="https://picsum.photos/seed/newphoto/1200/800" {...field} disabled={isSubmitting} />
                     </FormControl>
                     <FormDescription>
-                       Must be a full URL. Use `https://picsum.photos/seed/your-seed/1200/800` for placeholders.
+                       Debe ser una URL completa. Usa `https://picsum.photos/seed/tu-semilla/1200/800` para marcadores de posición.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -134,10 +134,10 @@ export default function AddPhotoPage() {
               {/* Image Preview */}
               {imagePreview && (
                 <div className="mt-4 p-2 border rounded-md bg-muted">
-                  <p className="text-sm font-medium mb-2 text-muted-foreground">Image Preview:</p>
+                  <p className="text-sm font-medium mb-2 text-muted-foreground">Vista Previa:</p>
                   <Image
                      src={imagePreview}
-                     alt="Preview"
+                     alt="Vista Previa"
                      width={300} // Adjust size as needed
                      height={200} // Adjust size as needed
                      className="object-contain rounded-md mx-auto" // Center the preview
@@ -152,12 +152,12 @@ export default function AddPhotoPage() {
                 name="alt"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Alt Text</FormLabel>
+                    <FormLabel>Texto Alternativo</FormLabel>
                     <FormControl>
-                      <Input placeholder="Describe the image for accessibility" {...field} disabled={isSubmitting} />
+                      <Input placeholder="Describe la imagen para accesibilidad" {...field} disabled={isSubmitting} />
                     </FormControl>
                     <FormDescription>
-                      Briefly describe the image content.
+                      Describe brevemente el contenido de la imagen.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -170,12 +170,12 @@ export default function AddPhotoPage() {
                 name="aiHint"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>AI Hint (Optional)</FormLabel>
+                    <FormLabel>Pista para IA (Opcional)</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., wedding cake flowers" {...field} disabled={isSubmitting} />
+                      <Input placeholder="ej. pastel de bodas flores" {...field} disabled={isSubmitting} />
                     </FormControl>
                     <FormDescription>
-                       Keywords for image search/generation (if replacing placeholders later).
+                       Palabras clave para búsqueda/generación de imágenes (si reemplazas marcadores más tarde).
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -184,7 +184,7 @@ export default function AddPhotoPage() {
 
 
               <Button type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90" disabled={isSubmitting}>
-                {isSubmitting ? 'Adding...' : 'Add Photo'}
+                {isSubmitting ? 'Añadiendo...' : 'Añadir Foto'}
               </Button>
             </form>
           </Form>

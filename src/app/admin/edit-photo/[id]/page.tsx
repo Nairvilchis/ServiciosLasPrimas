@@ -26,8 +26,8 @@ import { Skeleton } from '@/components/ui/skeleton'; // Import Skeleton
 
 // Zod schema for input validation (can be partial for updates)
 const PhotoUpdateSchema = z.object({
-  src: z.string().url("Source must be a valid URL.").optional(),
-  alt: z.string().min(3, "Alt text must be at least 3 characters.").optional(),
+  src: z.string().url("La fuente debe ser una URL válida.").optional(),
+  alt: z.string().min(3, "El texto alternativo debe tener al menos 3 caracteres.").optional(),
   aiHint: z.string().optional(), // Allow empty string
 });
 
@@ -54,7 +54,7 @@ export default function EditPhotoPage({ params }: EditPhotoPageProps) {
         const photo = await getPhotoById(photoId);
         if (!photo) {
           setNotFound(true);
-          toast({ title: "Error", description: "Photo not found.", variant: "destructive" });
+          toast({ title: "Error", description: "Foto no encontrada.", variant: "destructive" });
           setIsLoadingData(false);
           return { src: '', alt: '', aiHint: '' };
         }
@@ -66,8 +66,8 @@ export default function EditPhotoPage({ params }: EditPhotoPageProps) {
         setIsLoadingData(false);
         return defaultValues;
       } catch (error) {
-        console.error("Failed to fetch photo data:", error);
-        toast({ title: "Error", description: "Could not load photo data.", variant: "destructive" });
+        console.error("Error al cargar datos de la foto:", error);
+        toast({ title: "Error", description: "No se pudieron cargar los datos de la foto.", variant: "destructive" });
         setIsLoadingData(false);
         setNotFound(true);
         return { src: '', alt: '', aiHint: '' };
@@ -121,8 +121,8 @@ export default function EditPhotoPage({ params }: EditPhotoPageProps) {
 
       if (Object.keys(changedValues).length === 0) {
           toast({
-              title: "No Changes",
-              description: "You haven't made any changes to submit.",
+              title: "Sin Cambios",
+              description: "No has realizado ningún cambio para enviar.",
           });
           return;
       }
@@ -141,7 +141,7 @@ export default function EditPhotoPage({ params }: EditPhotoPageProps) {
 
       if (result.success) {
         toast({
-          title: 'Success!',
+          title: '¡Éxito!',
           description: result.message,
         });
         // Update default values and reset form state
@@ -152,19 +152,19 @@ export default function EditPhotoPage({ params }: EditPhotoPageProps) {
       } else {
         toast({
           title: 'Error',
-          description: result.message || "Failed to update photo.",
+          description: result.message || "Error al actualizar la foto.",
           variant: 'destructive',
         });
         if (result.errors) {
-          console.error("Field Errors:", result.errors);
+          console.error("Errores de campo:", result.errors);
         }
       }
     } catch (error) {
-      console.error('Submission error:', error);
-       const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred.";
+      console.error('Error de envío:', error);
+       const errorMessage = error instanceof Error ? error.message : "Ocurrió un error inesperado.";
       toast({
         title: 'Error',
-        description: `An unexpected error occurred: ${errorMessage}. Please try again.`,
+        description: `Ocurrió un error inesperado: ${errorMessage}. Por favor, inténtalo de nuevo.`,
         variant: 'destructive',
       });
     } finally {
@@ -209,11 +209,11 @@ export default function EditPhotoPage({ params }: EditPhotoPageProps) {
    if (notFound) {
        return (
            <div className="container mx-auto px-4 py-12 md:py-16 max-w-2xl text-center">
-              <h1 className="text-2xl font-bold mb-4 text-destructive">Photo Not Found</h1>
-              <p className="text-muted-foreground mb-6">The photo you are trying to edit does not exist.</p>
+              <h1 className="text-2xl font-bold mb-4 text-destructive">Foto No Encontrada</h1>
+              <p className="text-muted-foreground mb-6">La foto que intentas editar no existe.</p>
               <Button variant="outline" asChild>
                 <Link href="/admin/gallery">
-                  <ArrowLeft className="mr-2 h-4 w-4" /> Back to Gallery List
+                  <ArrowLeft className="mr-2 h-4 w-4" /> Volver a la Lista de Galería
                 </Link>
               </Button>
            </div>
@@ -225,13 +225,13 @@ export default function EditPhotoPage({ params }: EditPhotoPageProps) {
     <div className="container mx-auto px-4 py-12 md:py-16 max-w-2xl">
         <Button variant="outline" size="sm" asChild className="mb-4">
            <Link href="/admin/gallery">
-             <ArrowLeft className="mr-2 h-4 w-4" /> Back to Gallery List
+             <ArrowLeft className="mr-2 h-4 w-4" /> Volver a la Lista de Galería
            </Link>
         </Button>
       <Card className="shadow-lg">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold text-primary">Edit Gallery Photo</CardTitle>
-          <CardDescription>Modify the details for this gallery image.</CardDescription>
+          <CardTitle className="text-2xl font-bold text-primary">Editar Foto de Galería</CardTitle>
+          <CardDescription>Modifica los detalles de esta imagen de la galería.</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -241,12 +241,12 @@ export default function EditPhotoPage({ params }: EditPhotoPageProps) {
                 name="src"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Image Source URL</FormLabel>
+                    <FormLabel>URL de Origen de la Imagen</FormLabel>
                     <FormControl>
                       <Input type="url" placeholder="https://picsum.photos/seed/yourphoto/1200/800" {...field} value={field.value ?? ''} disabled={isSubmitting} />
                     </FormControl>
                     <FormDescription>
-                       Must be a full URL. Use `https://picsum.photos/seed/your-seed/1200/800` for placeholders.
+                       Debe ser una URL completa. Usa `https://picsum.photos/seed/tu-semilla/1200/800` para marcadores de posición.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -256,10 +256,10 @@ export default function EditPhotoPage({ params }: EditPhotoPageProps) {
               {/* Image Preview */}
               {imagePreview && (
                 <div className="mt-4 p-2 border rounded-md bg-muted">
-                  <p className="text-sm font-medium mb-2 text-muted-foreground">Image Preview:</p>
+                  <p className="text-sm font-medium mb-2 text-muted-foreground">Vista Previa:</p>
                   <Image
                      src={imagePreview}
-                     alt="Preview"
+                     alt="Vista Previa"
                      width={300}
                      height={200}
                      className="object-contain rounded-md mx-auto"
@@ -274,12 +274,12 @@ export default function EditPhotoPage({ params }: EditPhotoPageProps) {
                 name="alt"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Alt Text</FormLabel>
+                    <FormLabel>Texto Alternativo</FormLabel>
                     <FormControl>
-                      <Input placeholder="Describe the image for accessibility" {...field} value={field.value ?? ''} disabled={isSubmitting} />
+                      <Input placeholder="Describe la imagen para accesibilidad" {...field} value={field.value ?? ''} disabled={isSubmitting} />
                     </FormControl>
                     <FormDescription>
-                      Briefly describe the image content.
+                      Describe brevemente el contenido de la imagen.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -292,12 +292,12 @@ export default function EditPhotoPage({ params }: EditPhotoPageProps) {
                  name="aiHint"
                  render={({ field }) => (
                    <FormItem>
-                     <FormLabel>AI Hint (Optional)</FormLabel>
+                     <FormLabel>Pista para IA (Opcional)</FormLabel>
                      <FormControl>
-                       <Input placeholder="e.g., wedding cake flowers" {...field} value={field.value ?? ''} disabled={isSubmitting} />
+                       <Input placeholder="ej. pastel de bodas flores" {...field} value={field.value ?? ''} disabled={isSubmitting} />
                      </FormControl>
                      <FormDescription>
-                        Keywords for image search/generation.
+                        Palabras clave para búsqueda/generación de imágenes.
                      </FormDescription>
                      <FormMessage />
                    </FormItem>
@@ -306,7 +306,7 @@ export default function EditPhotoPage({ params }: EditPhotoPageProps) {
 
 
               <Button type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90" disabled={isSubmitting || isLoadingData}>
-                 {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</> : 'Save Changes'}
+                 {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Guardando...</> : 'Guardar Cambios'}
               </Button>
             </form>
           </Form>

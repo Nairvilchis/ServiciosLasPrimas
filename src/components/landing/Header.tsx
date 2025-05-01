@@ -11,9 +11,9 @@ export function Header() {
         </Link>
         {/* Basic Navigation can be added here later */}
         {/* <nav className="ml-auto flex items-center space-x-4">
-          <Link href="#services">Services</Link>
-          <Link href="#testimonials">Testimonials</Link>
-          <Link href="#contact">Contact</Link>
+          <Link href="#services">Servicios</Link>
+          <Link href="#testimonials">Testimonios</Link>
+          <Link href="#contact">Contacto</Link>
         </nav> */}
       </div>
     </header>

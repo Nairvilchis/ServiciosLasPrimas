@@ -39,8 +39,8 @@ export default function ManageGalleryPage() {
         setPhotos(fetchedPhotos);
         setError(null);
       } catch (err) {
-        console.error("Failed to fetch photos:", err);
-        setError("Could not load photos. Please try again later.");
+        console.error("Error al cargar fotos:", err);
+        setError("No se pudieron cargar las fotos. Por favor, inténtalo de nuevo más tarde.");
       } finally {
         setIsLoading(false);
       }
@@ -59,7 +59,7 @@ export default function ManageGalleryPage() {
       const result = await deletePhotoAction(photoToDelete.id);
       if (result.success) {
         toast({
-          title: 'Success!',
+          title: '¡Éxito!',
           description: result.message,
         });
         // Optimistically remove from state or refetch
@@ -67,7 +67,7 @@ export default function ManageGalleryPage() {
       } else {
         toast({
           title: 'Error',
-          description: result.message || 'Failed to delete photo.',
+          description: result.message || 'Error al eliminar la foto.',
           variant: 'destructive',
         });
       }
@@ -80,13 +80,13 @@ export default function ManageGalleryPage() {
       <div className="flex justify-between items-center mb-6">
         <Button variant="outline" size="sm" asChild>
           <Link href="/">
-            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Home
+            <ArrowLeft className="mr-2 h-4 w-4" /> Volver al Inicio
           </Link>
         </Button>
-        <h1 className="text-2xl font-bold text-primary">Manage Gallery</h1>
+        <h1 className="text-2xl font-bold text-primary">Gestionar Galería</h1>
         <Button asChild>
           <Link href="/admin/add-photo">
-            <PlusCircle className="mr-2 h-4 w-4" /> Add New Photo
+            <PlusCircle className="mr-2 h-4 w-4" /> Añadir Nueva Foto
           </Link>
         </Button>
       </div>
@@ -95,8 +95,8 @@ export default function ManageGalleryPage() {
 
       <Card className="shadow-lg">
         <CardHeader>
-          <CardTitle>Gallery Photos</CardTitle>
-          <CardDescription>View, edit, or delete gallery photos.</CardDescription>
+          <CardTitle>Fotos de la Galería</CardTitle>
+          <CardDescription>Ver, editar o eliminar fotos de la galería.</CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -106,15 +106,15 @@ export default function ManageGalleryPage() {
               <Skeleton className="h-10 w-full" />
             </div>
            ) : photos.length === 0 && !error ? (
-              <p className="text-center text-muted-foreground py-4">No photos found in the gallery. Add one to get started!</p>
+              <p className="text-center text-muted-foreground py-4">No se encontraron fotos en la galería. ¡Añade una para empezar!</p>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[120px]">Preview</TableHead>
-                  <TableHead>Alt Text</TableHead>
-                  <TableHead className="hidden md:table-cell">AI Hint</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead className="w-[120px]">Vista Previa</TableHead>
+                  <TableHead>Texto Alternativo</TableHead>
+                  <TableHead className="hidden md:table-cell">Pista para IA</TableHead>
+                  <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -136,10 +136,10 @@ export default function ManageGalleryPage() {
                     </TableCell>
                     <TableCell className="text-right">
                        <div className="flex justify-end gap-2">
-                          <Button variant="outline" size="sm" asChild title="Edit">
+                          <Button variant="outline" size="sm" asChild title="Editar">
                             <Link href={`/admin/edit-photo/${photo.id}`}>
                                 <Edit className="h-4 w-4" />
-                                <span className="sr-only">Edit</span>
+                                <span className="sr-only">Editar</span>
                              </Link>
                           </Button>
                           <Button
@@ -147,14 +147,14 @@ export default function ManageGalleryPage() {
                              size="sm"
                              onClick={() => handleDeleteClick(photo)}
                              disabled={isDeleting && photoToDelete?.id === photo.id}
-                             title="Delete"
+                             title="Eliminar"
                            >
                              {isDeleting && photoToDelete?.id === photo.id ? (
                                 <Loader2 className="h-4 w-4 animate-spin" />
                              ) : (
                                <Trash2 className="h-4 w-4" />
                              )}
-                             <span className="sr-only">Delete</span>
+                             <span className="sr-only">Eliminar</span>
                            </Button>
                        </div>
                     </TableCell>
@@ -170,17 +170,17 @@ export default function ManageGalleryPage() {
        <AlertDialog open={!!photoToDelete} onOpenChange={(open) => !open && setPhotoToDelete(null)}>
          <AlertDialogContent>
            <AlertDialogHeader>
-             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+             <AlertDialogTitle>¿Estás absolutamente seguro?</AlertDialogTitle>
              <AlertDialogDescription>
-               This action cannot be undone. This will permanently delete the photo with alt text:
+               Esta acción no se puede deshacer. Esto eliminará permanentemente la foto con texto alternativo:
                <span className="font-semibold"> "{photoToDelete?.alt}"</span>.
              </AlertDialogDescription>
            </AlertDialogHeader>
            <AlertDialogFooter>
-             <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+             <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
              <AlertDialogAction onClick={handleConfirmDelete} disabled={isDeleting} className="bg-destructive hover:bg-destructive/90">
                {isDeleting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-               Delete
+               Eliminar
              </AlertDialogAction>
            </AlertDialogFooter>
          </AlertDialogContent>

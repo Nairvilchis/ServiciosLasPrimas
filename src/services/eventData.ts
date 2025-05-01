@@ -2,41 +2,41 @@
 
 import type { Service, GalleryPhoto } from '@/lib/types';
 
-// --- Mock Data Store ---
-// In a real application, this would interact with a database (e.g., Firestore).
+// --- Almacén de Datos Ficticio ---
+// En una aplicación real, esto interactuaría con una base de datos (p.ej., Firestore).
 
 let mockServices: Service[] = [
    {
      id: 'candy-bar',
-     title: 'Candy Bar Delights',
-     description: 'Customizable candy and dessert tables to sweeten any occasion. Choose your theme and treats!',
-     iconName: 'UtensilsCrossed', // Represents food/sweets
+     title: 'Delicias de Mesa de Dulces',
+     description: 'Mesas de dulces y postres personalizables para endulzar cualquier ocasión. ¡Elige tu tema y golosinas!',
+     iconName: 'UtensilsCrossed', // Representa comida/dulces
      image: 'https://picsum.photos/seed/candybar/600/400',
-     aiHint: 'candy bar dessert table',
+     aiHint: 'mesa de dulces postres',
    },
    {
      id: 'custom-cakes',
-     title: 'Custom Cakes',
-     description: 'From simple elegance to personalized masterpieces, we create cakes that taste as good as they look.',
+     title: 'Pasteles Personalizados',
+     description: 'Desde elegancia simple hasta obras maestras personalizadas, creamos pasteles que saben tan bien como lucen.',
      iconName: 'CakeSlice',
      image: 'https://picsum.photos/seed/cake/600/400',
-     aiHint: 'wedding birthday cake',
+     aiHint: 'pastel boda cumpleaños',
    },
    {
      id: 'rentals',
-     title: 'Table & Chair Rentals',
-     description: 'Provide comfortable and stylish seating for your guests. Various styles available.',
+     title: 'Renta de Mesas y Sillas',
+     description: 'Proporciona asientos cómodos y elegantes para tus invitados. Varios estilos disponibles.',
      iconName: 'Armchair', // Changed from MapPin to Armchair
      image: 'https://picsum.photos/seed/rentals/600/400',
-     aiHint: 'event table chair rental',
+     aiHint: 'renta mesa silla evento',
    },
    {
      id: 'open-bar',
-     title: 'Open Bar Service',
-     description: 'Professional bar service with a selection of drinks to keep the celebration flowing.',
+     title: 'Servicio de Barra Libre',
+     description: 'Servicio de bar profesional con una selección de bebidas para mantener la celebración fluyendo.',
      iconName: 'Wine',
      image: 'https://picsum.photos/seed/openbar/600/400',
-     aiHint: 'cocktail bar drinks',
+     aiHint: 'bar cocteles bebidas',
    },
  ];
 
@@ -44,79 +44,79 @@ let mockPhotos: GalleryPhoto[] = [
   {
     id: 'photo-1',
     src: 'https://picsum.photos/seed/party1/1200/800',
-    alt: 'Colorful party setup with balloons',
-    aiHint: 'party balloons decoration',
+    alt: 'Montaje colorido de fiesta con globos',
+    aiHint: 'fiesta globos decoración',
   },
   {
     id: 'photo-2',
     src: 'https://picsum.photos/seed/party2/1200/800',
-    alt: 'Close up of a beautifully decorated cake',
-    aiHint: 'decorated event cake',
+    alt: 'Primer plano de un pastel bellamente decorado',
+    aiHint: 'pastel decorado evento',
   },
   {
     id: 'photo-3',
     src: 'https://picsum.photos/seed/party3/1200/800',
-    alt: 'Guests enjoying drinks at an open bar',
-    aiHint: 'party guests drinks',
+    alt: 'Invitados disfrutando bebidas en una barra libre',
+    aiHint: 'fiesta invitados bebidas',
   },
   {
     id: 'photo-4',
     src: 'https://picsum.photos/seed/party4/1200/800',
-    alt: 'Elegant table setting for an event',
-    aiHint: 'event table setting',
+    alt: 'Montaje de mesa elegante para un evento',
+    aiHint: 'montaje mesa evento',
   },
   {
     id: 'photo-5',
     src: 'https://picsum.photos/seed/party5/1200/800',
-    alt: 'Fun candy bar with various sweets',
-    aiHint: 'candy bar sweets',
+    alt: 'Divertida mesa de dulces con varias golosinas',
+    aiHint: 'mesa dulces golosinas',
   },
 ];
 
-// --- Service Functions ---
+// --- Funciones de Servicio ---
 
 /**
- * Retrieves the list of services.
- * @returns A promise that resolves to an array of Service objects.
+ * Recupera la lista de servicios.
+ * @returns Una promesa que se resuelve a un array de objetos Service.
  */
 export async function getServices(): Promise<Service[]> {
-  // Simulate async operation
+  // Simula operación asíncrona
   await new Promise(resolve => setTimeout(resolve, 50));
-  return [...mockServices]; // Return a copy
+  return [...mockServices]; // Devuelve una copia
 }
 
 /**
- * Retrieves a single service by its ID.
- * @param id - The ID of the service to retrieve.
- * @returns A promise that resolves to the Service object or null if not found.
+ * Recupera un solo servicio por su ID.
+ * @param id - El ID del servicio a recuperar.
+ * @returns Una promesa que se resuelve al objeto Service o null si no se encuentra.
  */
 export async function getServiceById(id: string): Promise<Service | null> {
   await new Promise(resolve => setTimeout(resolve, 50));
   const service = mockServices.find(s => s.id === id);
-  return service ? { ...service } : null; // Return a copy
+  return service ? { ...service } : null; // Devuelve una copia
 }
 
 
 /**
- * Adds a new service.
- * @param serviceData - The data for the new service (excluding id).
- * @returns A promise that resolves to the newly created Service object.
+ * Añade un nuevo servicio.
+ * @param serviceData - Los datos para el nuevo servicio (excluyendo id).
+ * @returns Una promesa que se resuelve al objeto Service recién creado.
  */
 export async function addService(serviceData: Omit<Service, 'id'>): Promise<Service> {
-   // Simulate async operation
+   // Simula operación asíncrona
   await new Promise(resolve => setTimeout(resolve, 100));
   const newId = serviceData.title.toLowerCase().replace(/\s+/g, '-') + '-' + Date.now();
   const newService: Service = { ...serviceData, id: newId };
   mockServices.push(newService);
-  console.log("Added Service:", newService); // Log for debugging
+  console.log("Servicio Añadido:", newService); // Log para depuración
   return newService;
 }
 
 /**
- * Updates an existing service.
- * @param id - The ID of the service to update.
- * @param updateData - An object containing the fields to update.
- * @returns A promise that resolves to the updated Service object or null if not found.
+ * Actualiza un servicio existente.
+ * @param id - El ID del servicio a actualizar.
+ * @param updateData - Un objeto que contiene los campos a actualizar.
+ * @returns Una promesa que se resuelve al objeto Service actualizado o null si no se encuentra.
  */
 export async function updateService(id: string, updateData: Partial<Omit<Service, 'id'>>): Promise<Service | null> {
   await new Promise(resolve => setTimeout(resolve, 100));
@@ -124,16 +124,16 @@ export async function updateService(id: string, updateData: Partial<Omit<Service
   if (serviceIndex === -1) {
     return null;
   }
-  // Merge existing data with updateData
+  // Fusiona los datos existentes con updateData
   mockServices[serviceIndex] = { ...mockServices[serviceIndex], ...updateData };
-  console.log("Updated Service:", mockServices[serviceIndex]); // Log for debugging
-  return { ...mockServices[serviceIndex] }; // Return a copy
+  console.log("Servicio Actualizado:", mockServices[serviceIndex]); // Log para depuración
+  return { ...mockServices[serviceIndex] }; // Devuelve una copia
 }
 
 /**
- * Deletes a service.
- * @param id - The ID of the service to delete.
- * @returns A promise that resolves to true if deletion was successful, false otherwise.
+ * Elimina un servicio.
+ * @param id - El ID del servicio a eliminar.
+ * @returns Una promesa que se resuelve a true si la eliminación fue exitosa, false en caso contrario.
  */
 export async function deleteService(id: string): Promise<boolean> {
   await new Promise(resolve => setTimeout(resolve, 100));
@@ -141,58 +141,58 @@ export async function deleteService(id: string): Promise<boolean> {
   mockServices = mockServices.filter(s => s.id !== id);
   const success = mockServices.length < initialLength;
   if (success) {
-    console.log("Deleted Service with ID:", id); // Log for debugging
+    console.log("Servicio Eliminado con ID:", id); // Log para depuración
   }
   return success;
 }
 
 
 /**
- * Retrieves the list of gallery photos.
- * @returns A promise that resolves to an array of GalleryPhoto objects.
+ * Recupera la lista de fotos de la galería.
+ * @returns Una promesa que se resuelve a un array de objetos GalleryPhoto.
  */
 export async function getPhotos(): Promise<GalleryPhoto[]> {
-   // Simulate async operation
+   // Simula operación asíncrona
   await new Promise(resolve => setTimeout(resolve, 50));
-  return [...mockPhotos]; // Return a copy
+  return [...mockPhotos]; // Devuelve una copia
 }
 
 /**
- * Retrieves a single photo by its ID.
- * @param id - The ID of the photo to retrieve.
- * @returns A promise that resolves to the GalleryPhoto object or null if not found.
+ * Recupera una sola foto por su ID.
+ * @param id - El ID de la foto a recuperar.
+ * @returns Una promesa que se resuelve al objeto GalleryPhoto o null si no se encuentra.
  */
 export async function getPhotoById(id: string): Promise<GalleryPhoto | null> {
   await new Promise(resolve => setTimeout(resolve, 50));
   const photo = mockPhotos.find(p => p.id === id);
-  return photo ? { ...photo } : null; // Return a copy
+  return photo ? { ...photo } : null; // Devuelve una copia
 }
 
 
 /**
- * Adds a new photo to the gallery.
- * @param photoData - The data for the new photo (excluding id). Requires src URL.
- * @returns A promise that resolves to the newly created GalleryPhoto object.
+ * Añade una nueva foto a la galería.
+ * @param photoData - Los datos para la nueva foto (excluyendo id). Requiere URL src.
+ * @returns Una promesa que se resuelve al objeto GalleryPhoto recién creado.
  */
 export async function addPhoto(photoData: Omit<GalleryPhoto, 'id'>): Promise<GalleryPhoto> {
-   // Simulate async operation
+   // Simula operación asíncrona
   await new Promise(resolve => setTimeout(resolve, 100));
   const newId = 'photo-' + Date.now();
-  // Basic validation: Ensure src is provided
+  // Validación básica: Asegura que se proporcione src
   if (!photoData.src || typeof photoData.src !== 'string' || !photoData.src.startsWith('http')) {
-      throw new Error("Invalid photo source URL provided.");
+      throw new Error("URL de origen de foto inválida proporcionada.");
   }
   const newPhoto: GalleryPhoto = { ...photoData, id: newId };
   mockPhotos.push(newPhoto);
-  console.log("Added Photo:", newPhoto); // Log for debugging
+  console.log("Foto Añadida:", newPhoto); // Log para depuración
   return newPhoto;
 }
 
 /**
- * Updates an existing photo.
- * @param id - The ID of the photo to update.
- * @param updateData - An object containing the fields to update.
- * @returns A promise that resolves to the updated GalleryPhoto object or null if not found.
+ * Actualiza una foto existente.
+ * @param id - El ID de la foto a actualizar.
+ * @param updateData - Un objeto que contiene los campos a actualizar.
+ * @returns Una promesa que se resuelve al objeto GalleryPhoto actualizado o null si no se encuentra.
  */
 export async function updatePhoto(id: string, updateData: Partial<Omit<GalleryPhoto, 'id'>>): Promise<GalleryPhoto | null> {
   await new Promise(resolve => setTimeout(resolve, 100));
@@ -200,20 +200,20 @@ export async function updatePhoto(id: string, updateData: Partial<Omit<GalleryPh
   if (photoIndex === -1) {
     return null;
   }
-   // Basic validation for src if provided
+   // Validación básica para src si se proporciona
    if (updateData.src && (typeof updateData.src !== 'string' || !updateData.src.startsWith('http'))) {
-     throw new Error("Invalid photo source URL provided for update.");
+     throw new Error("URL de origen de foto inválida proporcionada para la actualización.");
    }
-  // Merge existing data with updateData
+  // Fusiona los datos existentes con updateData
   mockPhotos[photoIndex] = { ...mockPhotos[photoIndex], ...updateData };
-  console.log("Updated Photo:", mockPhotos[photoIndex]); // Log for debugging
-  return { ...mockPhotos[photoIndex] }; // Return a copy
+  console.log("Foto Actualizada:", mockPhotos[photoIndex]); // Log para depuración
+  return { ...mockPhotos[photoIndex] }; // Devuelve una copia
 }
 
 /**
- * Deletes a photo.
- * @param id - The ID of the photo to delete.
- * @returns A promise that resolves to true if deletion was successful, false otherwise.
+ * Elimina una foto.
+ * @param id - El ID de la foto a eliminar.
+ * @returns Una promesa que se resuelve a true si la eliminación fue exitosa, false en caso contrario.
  */
 export async function deletePhoto(id: string): Promise<boolean> {
   await new Promise(resolve => setTimeout(resolve, 100));
@@ -221,9 +221,9 @@ export async function deletePhoto(id: string): Promise<boolean> {
   mockPhotos = mockPhotos.filter(p => p.id !== id);
   const success = mockPhotos.length < initialLength;
   if (success) {
-     console.log("Deleted Photo with ID:", id); // Log for debugging
+     console.log("Foto Eliminada con ID:", id); // Log para depuración
   }
   return success;
 }
 
-// Add more functions as needed
+// Añade más funciones según sea necesario
