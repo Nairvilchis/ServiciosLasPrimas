@@ -25,7 +25,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es"> {/* Change language to Spanish */}
+    // Removed whitespace and comment inside <html> tag to fix hydration error
+    <html lang="es">
       <body className={`${geistSans.variable} font-sans antialiased`}> {/* Use font-sans utility */}
         {children}
         <Toaster /> {/* Add Toaster here */}
