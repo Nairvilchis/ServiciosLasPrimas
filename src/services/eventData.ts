@@ -86,6 +86,18 @@ export async function getServices(): Promise<Service[]> {
 }
 
 /**
+ * Retrieves a single service by its ID.
+ * @param id - The ID of the service to retrieve.
+ * @returns A promise that resolves to the Service object or null if not found.
+ */
+export async function getServiceById(id: string): Promise<Service | null> {
+  await new Promise(resolve => setTimeout(resolve, 50));
+  const service = mockServices.find(s => s.id === id);
+  return service ? { ...service } : null; // Return a copy
+}
+
+
+/**
  * Adds a new service.
  * @param serviceData - The data for the new service (excluding id).
  * @returns A promise that resolves to the newly created Service object.
@@ -101,6 +113,41 @@ export async function addService(serviceData: Omit<Service, 'id'>): Promise<Serv
 }
 
 /**
+ * Updates an existing service.
+ * @param id - The ID of the service to update.
+ * @param updateData - An object containing the fields to update.
+ * @returns A promise that resolves to the updated Service object or null if not found.
+ */
+export async function updateService(id: string, updateData: Partial<Omit<Service, 'id'>>): Promise<Service | null> {
+  await new Promise(resolve => setTimeout(resolve, 100));
+  const serviceIndex = mockServices.findIndex(s => s.id === id);
+  if (serviceIndex === -1) {
+    return null;
+  }
+  // Merge existing data with updateData
+  mockServices[serviceIndex] = { ...mockServices[serviceIndex], ...updateData };
+  console.log("Updated Service:", mockServices[serviceIndex]); // Log for debugging
+  return { ...mockServices[serviceIndex] }; // Return a copy
+}
+
+/**
+ * Deletes a service.
+ * @param id - The ID of the service to delete.
+ * @returns A promise that resolves to true if deletion was successful, false otherwise.
+ */
+export async function deleteService(id: string): Promise<boolean> {
+  await new Promise(resolve => setTimeout(resolve, 100));
+  const initialLength = mockServices.length;
+  mockServices = mockServices.filter(s => s.id !== id);
+  const success = mockServices.length < initialLength;
+  if (success) {
+    console.log("Deleted Service with ID:", id); // Log for debugging
+  }
+  return success;
+}
+
+
+/**
  * Retrieves the list of gallery photos.
  * @returns A promise that resolves to an array of GalleryPhoto objects.
  */
@@ -109,6 +156,18 @@ export async function getPhotos(): Promise<GalleryPhoto[]> {
   await new Promise(resolve => setTimeout(resolve, 50));
   return [...mockPhotos]; // Return a copy
 }
+
+/**
+ * Retrieves a single photo by its ID.
+ * @param id - The ID of the photo to retrieve.
+ * @returns A promise that resolves to the GalleryPhoto object or null if not found.
+ */
+export async function getPhotoById(id: string): Promise<GalleryPhoto | null> {
+  await new Promise(resolve => setTimeout(resolve, 50));
+  const photo = mockPhotos.find(p => p.id === id);
+  return photo ? { ...photo } : null; // Return a copy
+}
+
 
 /**
  * Adds a new photo to the gallery.
@@ -129,5 +188,42 @@ export async function addPhoto(photoData: Omit<GalleryPhoto, 'id'>): Promise<Gal
   return newPhoto;
 }
 
+/**
+ * Updates an existing photo.
+ * @param id - The ID of the photo to update.
+ * @param updateData - An object containing the fields to update.
+ * @returns A promise that resolves to the updated GalleryPhoto object or null if not found.
+ */
+export async function updatePhoto(id: string, updateData: Partial<Omit<GalleryPhoto, 'id'>>): Promise<GalleryPhoto | null> {
+  await new Promise(resolve => setTimeout(resolve, 100));
+  const photoIndex = mockPhotos.findIndex(p => p.id === id);
+  if (photoIndex === -1) {
+    return null;
+  }
+   // Basic validation for src if provided
+   if (updateData.src && (typeof updateData.src !== 'string' || !updateData.src.startsWith('http'))) {
+     throw new Error("Invalid photo source URL provided for update.");
+   }
+  // Merge existing data with updateData
+  mockPhotos[photoIndex] = { ...mockPhotos[photoIndex], ...updateData };
+  console.log("Updated Photo:", mockPhotos[photoIndex]); // Log for debugging
+  return { ...mockPhotos[photoIndex] }; // Return a copy
+}
 
-// Add more functions as needed (updateService, deleteService, updatePhoto, deletePhoto)
+/**
+ * Deletes a photo.
+ * @param id - The ID of the photo to delete.
+ * @returns A promise that resolves to true if deletion was successful, false otherwise.
+ */
+export async function deletePhoto(id: string): Promise<boolean> {
+  await new Promise(resolve => setTimeout(resolve, 100));
+  const initialLength = mockPhotos.length;
+  mockPhotos = mockPhotos.filter(p => p.id !== id);
+  const success = mockPhotos.length < initialLength;
+  if (success) {
+     console.log("Deleted Photo with ID:", id); // Log for debugging
+  }
+  return success;
+}
+
+// Add more functions as needed

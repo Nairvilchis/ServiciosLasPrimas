@@ -24,11 +24,20 @@ export default function Home() {
            <h3 className="text-lg font-semibold mb-4 text-muted-foreground">Admin Area (Temporary)</h3>
            <div className="flex justify-center gap-4">
              <Button asChild variant="outline">
-               <Link href="/admin/add-service">Add New Service</Link>
+               <Link href="/admin/services">Manage Services</Link>
              </Button>
              <Button asChild variant="outline">
-                <Link href="/admin/add-photo">Add New Gallery Photo</Link>
+                <Link href="/admin/gallery">Manage Gallery Photos</Link>
              </Button>
+             {/* Direct links to add pages can still be useful */}
+             {/*
+             <Button asChild variant="link">
+               <Link href="/admin/add-service">Add Service</Link>
+             </Button>
+             <Button asChild variant="link">
+                <Link href="/admin/add-photo">Add Photo</Link>
+             </Button>
+              */}
            </div>
          </div>
       </main>
