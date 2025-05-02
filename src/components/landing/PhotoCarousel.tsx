@@ -81,13 +81,13 @@ export function PhotoCarousel() {
                   <CarouselItem key={photo.id} className="md:basis-1/2 lg:basis-1/1"> {/* Adjust basis for desired display */}
                     <div className="p-1">
                       <Card className="overflow-hidden shadow-md">
-                        <CardContent className="flex aspect-[3/2] items-center justify-center p-0 bg-background"> {/* Added bg-background for contain */}
+                        <CardContent className="flex aspect-[3/2] items-center justify-center p-0"> {/* Removed bg-background */}
                           <Image
                             src={photo.src}
                             alt={photo.alt}
                             width={1200}
                             height={800}
-                            className="object-contain w-full h-full" // Changed object-cover to object-contain
+                            className="object-cover w-full h-full" // Changed object-contain back to object-cover
                             data-ai-hint={photo.aiHint}
                             priority={index === 0} // Prioritize loading the first image
                             unoptimized // Keep if using external non-configured domains
