@@ -1,13 +1,15 @@
 import mongoose from 'mongoose';
-import dotenv from 'dotenv';
 
-dotenv.config();
-
-const MONGODB_URI = process.env.MONGODB_URI || `mongodb://mongodb:27017/LasPrimas`;
+const MONGODB_URI = process.env.MONGODB_URI;
 
 export async function connectDB() {
+  if (!MONGODB_URI) {
+    console.error('❌ MONGODB_URI environment variable is not set.');
+    process.exit(1);
+  }
+
   try {
-    await mongoose.connect(MONGODB_URI,);
+    await mongoose.connect(MONGODB_URI);
     console.log('✅ Conectado a MongoDB');
   } catch (error) {
     console.error('❌ Error al conectar a MongoDB:', error);
