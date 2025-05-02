@@ -31,6 +31,7 @@ export function PhotoCarousel() {
       try {
         setIsLoading(true);
         const fetchedPhotos = await getPhotos();
+        console.log("Fetched photos:", fetchedPhotos); // Added console log
         setPhotos(fetchedPhotos);
         setError(null);
       } catch (err) {

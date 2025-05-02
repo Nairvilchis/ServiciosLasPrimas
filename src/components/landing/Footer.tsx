@@ -13,11 +13,11 @@ export function Footer() {
         </div>
         <div className="flex space-x-6">
            {/* Add actual contact info later */}
-           <Link href="mailto:info@servicioslasprimas.fake" className="text-sm hover:text-primary transition-colors flex items-center gap-1">
-              <Mail size={16} /> info@servicioslasprimas.fake
+           <Link href="cotizaciones@servicioslasprimas.shop" className="text-sm hover:text-primary transition-colors flex items-center gap-1">
+              <Mail size={16} /> cotizaciones@servicioslasprimas.shop
             </Link>
-           <Link href="tel:+1234567890" className="text-sm hover:text-primary transition-colors flex items-center gap-1">
-             <Phone size={16} /> +1 (234) 567-890
+           <Link href="tel:+529995106213" className="text-sm hover:text-primary transition-colors flex items-center gap-1">
+             <Phone size={16} /> +52 (999) 510-6213
             </Link>
            {/* Optional: Social Media Links */}
            {/* <Link href="#" className="text-sm hover:text-primary transition-colors">Facebook</Link>

@@ -18,6 +18,10 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  allowedDevOrigins: [
+    'https://9000-idx-studio-1746073676083.cluster-joak5ukfbnbyqspg4tewa33d24.cloudworkstations.dev',
+    'https://6000-idx-studio-1746073676083.cluster-joak5ukfbnbyqspg4tewa33d24.cloudworkstations.dev'
+  ],
 };
 
 export default nextConfig;

@@ -10,6 +10,9 @@ export function Hero() {
        <div className="absolute top-10 left-10 w-8 h-8 bg-primary rounded-full opacity-50 animate-pulse"></div>
        <div className="absolute bottom-20 right-20 w-12 h-12 bg-accent rounded-lg opacity-30 transform rotate-45 animate-bounce"></div>
        <div className="absolute top-1/3 right-1/4 w-6 h-6 bg-secondary rounded-sm opacity-60 animate-spin-slow"></div>
+       <div className="absolute top-10 left-10 w-8 h-8 bg-primary rounded-full opacity-50 animate-pulse"></div>
+       <div className="absolute bottom-20 right-20 w-12 h-12 bg-accent rounded-lg opacity-30 transform rotate-45 animate-bounce"></div>
+       <div className="absolute top-1/3 right-1/4 w-6 h-6 bg-secondary rounded-sm opacity-60 animate-spin-slow"></div>
 
       <div className="container mx-auto px-4 md:px-6 text-center relative z-10">
         <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl text-primary-foreground drop-shadow-md"> {/* Added drop-shadow */}
