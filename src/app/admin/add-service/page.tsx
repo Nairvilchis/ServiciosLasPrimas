@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
+import {  useRouter } from 'next/navigation';
 import {
   Form,
   FormControl,
@@ -19,7 +20,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { addServiceAction } from '@/app/actions/eventActions';
-import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 
 // Re-use the Zod schema from actions (or define it here if preferred) - Translated messages
@@ -37,6 +37,7 @@ type ServiceFormData = z.infer<typeof ServiceInputSchema>;
 export default function AddServicePage() {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const router = useRouter();
 
   const form = useForm<ServiceFormData>({
     resolver: zodResolver(ServiceInputSchema),
@@ -51,6 +52,7 @@ export default function AddServicePage() {
 
   async function onSubmit(values: ServiceFormData) {
     setIsSubmitting(true);
+
     const formData = new FormData();
     Object.entries(values).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
@@ -93,11 +95,11 @@ export default function AddServicePage() {
 
   return (
     <div className="container mx-auto px-4 py-12 md:py-16 max-w-2xl">
-      <Button variant="outline" size="sm" asChild className="mb-4">
-         <Link href="/">
-           <ArrowLeft className="mr-2 h-4 w-4" /> Volver al Inicio
-         </Link>
+      <Button variant="outline" size="sm" onClick={() => router.push('/admin/services')} className="mb-4">
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Volver al Inicio
       </Button>
+
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="text-2xl font-bold text-primary">Añadir Nuevo Servicio</CardTitle>
@@ -139,12 +141,12 @@ export default function AddServicePage() {
                 )}
               />
 
-               <FormField
+              <FormField
                 control={form.control}
                 name="iconName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Nombre del Ícono (de Lucide)</FormLabel>
+                    <FormLabel>Nombre del Ícono </FormLabel>
                     <FormControl>
                       <Input placeholder="ej. PartyPopper" {...field} disabled={isSubmitting} />
                     </FormControl>

@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
+import {  useRouter } from 'next/navigation';
 import {
   Form,
   FormControl,
@@ -18,7 +19,6 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { addPhotoAction } from '@/app/actions/eventActions';
-import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import Image from 'next/image'; // Import Image for preview
 
@@ -33,6 +33,7 @@ type PhotoFormData = z.infer<typeof PhotoInputSchema>;
 
 export default function AddPhotoPage() {
   const { toast } = useToast();
+  const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null); // State for image preview
 
@@ -101,10 +102,10 @@ export default function AddPhotoPage() {
 
   return (
     <div className="container mx-auto px-4 py-12 md:py-16 max-w-2xl">
-        <Button variant="outline" size="sm" asChild className="mb-4">
-           <Link href="/">
-             <ArrowLeft className="mr-2 h-4 w-4" /> Volver al Inicio
-           </Link>
+        <Button variant="outline" size="sm" onClick={() => router.push('/admin/gallery')} className="mb-4">
+
+           <ArrowLeft className="mr-2 h-4 w-4" /> Volver a la Galería
+
         </Button>
       <Card className="shadow-lg">
         <CardHeader>

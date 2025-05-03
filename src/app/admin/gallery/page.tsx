@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useTransition } from 'react';
+import React, { useState, useEffect, useTransition} from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { getPhotos } from '@/services/eventData'; // Assuming getPhotos exists
@@ -18,6 +18,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { useRouter } from 'next/navigation';
 import { ArrowLeft, PlusCircle, Edit, Trash2, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { deletePhotoAction } from '@/app/actions/eventActions'; // Assuming deletePhotoAction exists
@@ -30,6 +31,7 @@ export default function ManageGalleryPage() {
   const [isDeleting, startDeleteTransition] = useTransition();
   const [photoToDelete, setPhotoToDelete] = useState<GalleryPhoto | null>(null);
   const { toast } = useToast();
+  const router = useRouter();
 
   useEffect(() => {
     async function loadData() {
@@ -78,11 +80,9 @@ export default function ManageGalleryPage() {
   return (
     <div className="container mx-auto px-4 py-12 md:py-16 max-w-4xl">
       <div className="flex justify-between items-center mb-6">
-        <Button variant="outline" size="sm" asChild>
-          <Link href="/">
-            <ArrowLeft className="mr-2 h-4 w-4" /> Volver al Inicio
-          </Link>
-        </Button>
+           <Button variant="outline" size="sm" onClick={() => router.push('/admin')}>
+               <ArrowLeft className="mr-2 h-4 w-4" /> Volver
+            </Button>
         <h1 className="text-2xl font-bold text-primary">Gestionar Galería</h1>
         <Button asChild>
           <Link href="/admin/add-photo">
@@ -136,11 +136,11 @@ export default function ManageGalleryPage() {
                     </TableCell>
                     <TableCell className="text-right">
                        <div className="flex justify-end gap-2">
-                          <Button variant="outline" size="sm" asChild title="Editar">
-                            <Link href={`/admin/edit-photo/${photo.id}`}>
-                                <Edit className="h-4 w-4" />
-                                <span className="sr-only">Editar</span>
-                             </Link>
+                          <Button variant="outline" size="sm"  title="Editar" asChild>
+                                <Link href={`/admin/edit-photo/${photo.id}`} >
+                                    <Edit className="h-4 w-4" />
+                                    <span className="sr-only">Editar</span>
+                                </Link>
                           </Button>
                           <Button
                              variant="destructive"

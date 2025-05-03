@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState, useEffect, useTransition } from 'react';
+import React, { useState, useEffect, useTransition, Fragment } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { getServices, deleteService } from '@/services/eventData';
@@ -17,8 +17,9 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle,
+  AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { useRouter } from 'next/navigation';
 import { ArrowLeft, PlusCircle, Edit, Trash2, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { deleteServiceAction } from '@/app/actions/eventActions';
@@ -31,6 +32,7 @@ export default function ManageServicesPage() {
   const [isDeleting, startDeleteTransition] = useTransition();
   const [serviceToDelete, setServiceToDelete] = useState<Service | null>(null);
   const { toast } = useToast();
+  const router = useRouter();
 
   useEffect(() => {
     async function loadData() {
@@ -77,14 +79,13 @@ export default function ManageServicesPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-12 md:py-16 max-w-4xl">
+    <div className="container mx-auto px-4 py-8 md:py-16 max-w-4xl">
       <div className="flex justify-between items-center mb-6">
-        <Button variant="outline" size="sm" asChild>
-          <Link href="/">
-            <ArrowLeft className="mr-2 h-4 w-4" /> Volver al Inicio
-          </Link>
-        </Button>
-        <h1 className="text-2xl font-bold text-primary">Gestionar Servicios</h1>
+           <Button variant="outline" size="sm" onClick={() => router.push('/admin')}>
+               <ArrowLeft className="mr-2 h-4 w-4" /> Volver
+           </Button>
+
+          <h1 className="text-2xl font-bold text-primary">Gestionar Servicios</h1>
         <Button asChild>
           <Link href="/admin/add-service">
             <PlusCircle className="mr-2 h-4 w-4" /> Añadir Nuevo Servicio
@@ -160,19 +161,22 @@ export default function ManageServicesPage() {
                        </div>
                     </TableCell>
                   </TableRow>
-                ))}
+                   ))}
               </TableBody>
             </Table>
           )}
         </CardContent>
       </Card>
 
-       {/* Delete Confirmation Dialog */}
-       <AlertDialog open={!!serviceToDelete} onOpenChange={(open) => !open && setServiceToDelete(null)}>
-         <AlertDialogContent>
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!serviceToDelete} onOpenChange={(open) => !open && setServiceToDelete(null)}>
+         <AlertDialogTrigger asChild>
+
+         </AlertDialogTrigger>
+         <AlertDialogContent className={"sm:max-w-[425px]"}>
            <AlertDialogHeader>
              <AlertDialogTitle>¿Estás absolutamente seguro?</AlertDialogTitle>
-             <AlertDialogDescription>
+              <AlertDialogDescription>
                Esta acción no se puede deshacer. Esto eliminará permanentemente el servicio
                <span className="font-semibold"> "{serviceToDelete?.title}"</span>.
              </AlertDialogDescription>
