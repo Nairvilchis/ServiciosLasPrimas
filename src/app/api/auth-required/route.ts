@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 export async function GET() {
-  // Return a 401 Unauthorized response
+  // Return a 401 Unauthorized responsesd
   return new NextResponse('Autenticación requerida', {
     status: 401,
     headers: {
