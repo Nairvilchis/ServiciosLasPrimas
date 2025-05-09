@@ -5,7 +5,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, CalendarClock, ShoppingCart, FileText } from 'lucide-react';
+import { ArrowLeft, CalendarClock, ShoppingCart, FileText, PlusCircle, ListChecks } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function AgendaFinanzasPage() {
@@ -46,12 +46,31 @@ export default function AgendaFinanzasPage() {
                   <CardTitle className="text-xl text-secondary-foreground">Agenda de Servicios</CardTitle>
                   <CardDescription>Visualiza y gestiona tus citas y eventos programados.</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4 p-6 min-h-[200px] flex items-center justify-center">
-                  <p className="text-muted-foreground italic">
-                    Aquí podrás añadir, ver y modificar las fechas y detalles de los servicios contratados.
-                    (Funcionalidad de calendario y gestión de eventos por implementar)
-                  </p>
-                  {/* Placeholder for agenda/calendar component */}
+                <CardContent className="space-y-6 p-6 min-h-[300px]">
+                  <div className="flex justify-end">
+                    <Button variant="outline" className="border-secondary text-secondary-foreground hover:bg-secondary/10">
+                      <PlusCircle className="mr-2 h-4 w-4" />
+                      Crear Nuevo Evento
+                    </Button>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3 text-secondary-foreground/90">Próximos Eventos:</h3>
+                    <div className="space-y-3">
+                      <div className="p-3 border border-secondary/30 rounded-md bg-secondary/5">
+                        <p className="font-medium text-secondary-foreground/80">Boda Pérez - García</p>
+                        <p className="text-sm text-muted-foreground">Fecha: 25 de Diciembre, 2024 - 14:00</p>
+                        <p className="text-sm text-muted-foreground">Servicios: Mesa de Dulces, Pastel</p>
+                      </div>
+                      <div className="p-3 border border-secondary/30 rounded-md bg-secondary/5">
+                        <p className="font-medium text-secondary-foreground/80">Cumpleaños Sofía</p>
+                        <p className="text-sm text-muted-foreground">Fecha: 10 de Enero, 2025 - 16:00</p>
+                        <p className="text-sm text-muted-foreground">Servicios: Renta de Mobiliario</p>
+                      </div>
+                       <p className="text-center text-muted-foreground italic pt-4">
+                        (Funcionalidad completa de calendario y gestión de eventos por implementar)
+                      </p>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>
@@ -93,3 +112,4 @@ export default function AgendaFinanzasPage() {
     </div>
   );
 }
+
