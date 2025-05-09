@@ -1,3 +1,4 @@
+// Indica que este archivo se ejecuta en el servidor. Esto es relevante en frameworks como Next.js para diferenciar entre código del cliente y del servidor.
 'use server';
 
 import { revalidatePath } from 'next/cache';
@@ -8,9 +9,12 @@ import {
   deleteService,
   updateService,
   deletePhoto,
-  updatePhoto
+  updatePhoto,
+  addCalendarEvent,
+  updateCalendarEvent,
+  deleteCalendarEvent,
 } from '@/services/eventData';
-import type { Service, GalleryPhoto } from '@/lib/types';
+import type { Service, GalleryPhoto, CalendarEvent } from '@/lib/types';
 
 // --- Zod Schemas for Input Validation ---
 
@@ -33,6 +37,19 @@ const PhotoInputSchema = z.object({
 
 // Schema for updating a photo (allows partial updates)
 const PhotoUpdateSchema = PhotoInputSchema.partial();
+
+const CalendarEventInputSchema = z.object({
+  title: z.string().min(3, "El título debe tener al menos 3 caracteres."),
+  startDateTime: z.coerce.date({ required_error: "La fecha y hora de inicio son requeridas."}),
+  endDateTime: z.coerce.date().optional(),
+  description: z.string().optional(),
+  clientName: z.string().optional(),
+  clientContact: z.string().optional(),
+  servicesInvolved: z.array(z.string()).optional(),
+  allDay: z.boolean().optional().default(false),
+});
+
+const CalendarEventUpdateSchema = CalendarEventInputSchema.partial();
 
 
 // --- Server Actions ---
@@ -230,5 +247,112 @@ export async function deletePhotoAction(id: string) {
   } catch (error) {
     console.error(`Error al eliminar foto ${id}:`, error);
     return { success: false, message: "Error al eliminar la foto." };
+  }
+}
+
+// --- Server Actions for Calendar Events ---
+export async function addCalendarEventAction(formData: FormData) {
+  const rawData = {
+    title: formData.get('title'),
+    startDateTime: formData.get('startDateTime'),
+    endDateTime: formData.get('endDateTime') || undefined, // Handle empty string for optional date
+    description: formData.get('description') || undefined,
+    clientName: formData.get('clientName') || undefined,
+    clientContact: formData.get('clientContact') || undefined,
+    servicesInvolved: formData.getAll('servicesInvolved').filter(Boolean), // Filter out empty strings if any
+    allDay: formData.get('allDay') === 'on' || formData.get('allDay') === 'true',
+  };
+
+  const validatedFields = CalendarEventInputSchema.safeParse(rawData);
+
+  if (!validatedFields.success) {
+    console.error("Error de Validación (Añadir Evento):", validatedFields.error.flatten().fieldErrors);
+    return {
+      success: false,
+      errors: validatedFields.error.flatten().fieldErrors,
+      message: "Validación fallida. Por favor, revisa los campos del evento.",
+    };
+  }
+
+  try {
+    const newEvent = await addCalendarEvent(validatedFields.data);
+    revalidatePath('/admin/agenda');
+    return { success: true, data: newEvent, message: "Evento añadido con éxito." };
+  } catch (error) {
+    console.error("Error al añadir evento:", error);
+    return { success: false, message: "Error al añadir el evento." };
+  }
+}
+
+export async function updateCalendarEventAction(id: string, formData: FormData) {
+  if (!id) {
+    return { success: false, message: "Se requiere el ID del evento para actualizar." };
+  }
+ const rawData = {
+    title: formData.get('title'),
+    startDateTime: formData.get('startDateTime'),
+    endDateTime: formData.get('endDateTime') || undefined,
+    description: formData.get('description') || undefined,
+    clientName: formData.get('clientName') || undefined,
+    clientContact: formData.get('clientContact') || undefined,
+    servicesInvolved: formData.getAll('servicesInvolved').filter(Boolean),
+    allDay: formData.get('allDay') === 'on' || formData.get('allDay') === 'true',
+  };
+
+
+  // Filter out undefined values so they don't overwrite existing fields if not provided
+  const updateData: any = {};
+  if (rawData.title) updateData.title = rawData.title;
+  if (rawData.startDateTime) updateData.startDateTime = rawData.startDateTime;
+  if (rawData.endDateTime) updateData.endDateTime = rawData.endDateTime;
+  if (rawData.description) updateData.description = rawData.description;
+  if (rawData.clientName) updateData.clientName = rawData.clientName;
+  if (rawData.clientContact) updateData.clientContact = rawData.clientContact;
+  if (rawData.servicesInvolved && rawData.servicesInvolved.length > 0) updateData.servicesInvolved = rawData.servicesInvolved;
+  // allDay is boolean, send it if it changed
+  if (formData.has('allDay')) updateData.allDay = rawData.allDay;
+
+
+  const validatedFields = CalendarEventUpdateSchema.safeParse(updateData);
+
+  if (!validatedFields.success) {
+    console.error("Error de Validación (Actualizar Evento):", validatedFields.error.flatten().fieldErrors);
+    return {
+      success: false,
+      errors: validatedFields.error.flatten().fieldErrors,
+      message: "Validación fallida. Por favor, revisa los campos del evento.",
+    };
+  }
+  if (Object.keys(validatedFields.data).length === 0) {
+    return { success: false, message: "No se enviaron cambios para actualizar." };
+  }
+
+  try {
+    const updatedEvent = await updateCalendarEvent(id, validatedFields.data);
+    if (!updatedEvent) {
+      return { success: false, message: `Evento con ID ${id} no encontrado.` };
+    }
+    revalidatePath('/admin/agenda');
+    return { success: true, data: updatedEvent, message: "Evento actualizado con éxito." };
+  } catch (error) {
+    console.error(`Error al actualizar evento ${id}:`, error);
+    return { success: false, message: "Error al actualizar el evento." };
+  }
+}
+
+export async function deleteCalendarEventAction(id: string) {
+  if (!id) {
+    return { success: false, message: "Se requiere el ID del evento para eliminar." };
+  }
+  try {
+    const deleted = await deleteCalendarEvent(id);
+    if (!deleted) {
+      return { success: false, message: `Evento con ID ${id} no encontrado o no se pudo eliminar.` };
+    }
+    revalidatePath('/admin/agenda');
+    return { success: true, message: "Evento eliminado con éxito." };
+  } catch (error) {
+    console.error(`Error al eliminar evento ${id}:`, error);
+    return { success: false, message: "Error al eliminar el evento." };
   }
 }

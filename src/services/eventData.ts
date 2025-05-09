@@ -1,10 +1,9 @@
-'use server';
 // Indica que este archivo se ejecuta en el servidor. Esto es relevante en frameworks como Next.js para diferenciar entre código del cliente y del servidor.
-
+'use server';
 import mongoose from 'mongoose';
 // Importa la biblioteca Mongoose, que se utiliza para interactuar con MongoDB.
 
-import type { Service, GalleryPhoto } from '@/lib/types';
+import type { Service, GalleryPhoto, CalendarEvent } from '@/lib/types';
 // Importa los tipos `Service` y `GalleryPhoto` desde el archivo de tipos. Esto asegura que los datos cumplan con las interfaces definidas.
 
 import { connectDB } from '@/config/db';
@@ -40,11 +39,27 @@ const photoSchema = new mongoose.Schema<GalleryPhoto>({
   // Define un campo `aiHint` de tipo String, obligatorio. Proporciona una pista para la generación de imágenes con IA.
 });
 
+const calendarEventSchema = new mongoose.Schema<CalendarEvent>({
+  id: { type: String, required: true, unique: true },
+  title: { type: String, required: true },
+  startDateTime: { type: Date, required: true },
+  endDateTime: { type: Date },
+  description: { type: String },
+  clientName: { type: String },
+  clientContact: { type: String },
+  servicesInvolved: [{ type: String }],
+  allDay: { type: Boolean, default: false },
+});
+
+
 const ServiceModel = mongoose.models.Service || mongoose.model<Service>('Service', serviceSchema);
 // Crea un modelo de Mongoose llamado `Service` basado en el esquema `serviceSchema`. Este modelo se utiliza para interactuar con la colección `Service` en MongoDB.
 
 const PhotoModel = mongoose.models.GalleryPhoto || mongoose.model<GalleryPhoto>('GalleryPhoto', photoSchema);
 // Crea un modelo de Mongoose llamado `GalleryPhoto` basado en el esquema `photoSchema`. Este modelo se utiliza para interactuar con la colección `GalleryPhoto` en MongoDB.
+
+const CalendarEventModel = mongoose.models.CalendarEvent || mongoose.model<CalendarEvent>('CalendarEvent', calendarEventSchema);
+
 
 // --- Funciones de Servicio ---
 export async function getServices(): Promise<Service[]> {
@@ -140,6 +155,44 @@ export async function deletePhoto(id: string): Promise<boolean> {
   const result = await PhotoModel.deleteOne({ id });
   if (result.deletedCount > 0) {
     console.log('Foto Eliminada con ID:', id);
+    return true;
+  }
+  return false;
+}
+
+// --- Funciones de Eventos del Calendario ---
+export async function getCalendarEvents(): Promise<CalendarEvent[]> {
+  const events = await CalendarEventModel.find().sort({ startDateTime: 1 }).lean();
+  // Convert Mongoose documents to plain objects, ensuring date conversion
+  return JSON.parse(JSON.stringify(events)) as CalendarEvent[];
+}
+
+export async function getCalendarEventById(id: string): Promise<CalendarEvent | null> {
+  const event = await CalendarEventModel.findOne({ id }).lean();
+  return JSON.parse(JSON.stringify(event)) as CalendarEvent | null;
+}
+
+export async function addCalendarEvent(eventData: Omit<CalendarEvent, 'id'>): Promise<CalendarEvent> {
+  const newId = 'event-' + Date.now();
+  const newEvent = new CalendarEventModel({ ...eventData, id: newId });
+  await newEvent.save();
+  console.log('Evento Añadido:', newEvent);
+  return JSON.parse(JSON.stringify(newEvent)) as CalendarEvent;
+}
+
+export async function updateCalendarEvent(id: string, updateData: Partial<Omit<CalendarEvent, 'id'>>): Promise<CalendarEvent | null> {
+  const updatedEvent = await CalendarEventModel.findOneAndUpdate({ id }, updateData, { new: true }).lean();
+  if (updatedEvent) {
+    console.log('Evento Actualizado:', updatedEvent);
+    return JSON.parse(JSON.stringify(updatedEvent)) as CalendarEvent;
+  }
+  return null;
+}
+
+export async function deleteCalendarEvent(id: string): Promise<boolean> {
+  const result = await CalendarEventModel.deleteOne({ id });
+  if (result.deletedCount > 0) {
+    console.log('Evento Eliminado con ID:', id);
     return true;
   }
   return false;
