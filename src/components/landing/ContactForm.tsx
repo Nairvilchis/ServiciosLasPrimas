@@ -19,28 +19,21 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import React from "react";
-import { MessageSquare } from 'lucide-react'; // Using a generic message icon
+import { MessageSquare } from 'lucide-react';
 import Link from 'next/link';
-
-// Mock services for checkbox group (Translated)
-const services = [
-  { id: "candyBar", label: "Mesa de Dulces" },
-  { id: "cakes", label: "Pasteles Personalizados" },
-  { id: "rentals", label: "Renta de Mesas y Sillas" },
-  { id: "openBar", label: "Servicio de Barra Libre" },
-  { id: "other", label: "Otro (Especificar abajo)" },
-] as const; // Use 'as const' for type safety
+import type { Service } from '@/lib/types'; // Import Service type
 
 // Define Zod schema for validation (Translated messages)
 const formSchema = z.object({
   name: z.string().min(2, { message: "El nombre debe tener al menos 2 caracteres." }),
   email: z.string().email({ message: "Por favor ingresa un correo electrónico válido." }),
   phone: z.string().optional(),
-  eventDate: z.string().optional(), // Consider using a date picker component later
+  eventDate: z.string().optional(),
   services: z.array(z.string()).refine((value) => value.some((item) => item), {
     message: "Debes seleccionar al menos un servicio.",
   }),
   message: z.string().min(10, { message: "El mensaje debe tener al menos 10 caracteres." }),
+  otherService: z.string().optional(), // For "Otro" specification
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -60,9 +53,14 @@ async function submitInquiry(data: FormData): Promise<{ success: boolean; messag
   }
 }
 
-export function ContactForm() {
+interface ContactFormProps {
+  servicesList: Service[]; // Accept services as a prop
+}
+
+export function ContactForm({ servicesList }: ContactFormProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [showOtherServiceInput, setShowOtherServiceInput] = React.useState(false);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -73,19 +71,49 @@ export function ContactForm() {
       eventDate: "",
       services: [],
       message: "",
+      otherService: "",
     },
   });
+
+  // Watch the services field to show/hide "Otro" input
+  const watchedServices = form.watch("services");
+  React.useEffect(() => {
+    if (watchedServices.includes("other")) {
+      setShowOtherServiceInput(true);
+    } else {
+      setShowOtherServiceInput(false);
+      form.setValue("otherService", ""); // Clear if "Otro" is unchecked
+    }
+  }, [watchedServices, form]);
+
 
  async function onSubmit(values: FormData) {
     setIsSubmitting(true);
     try {
-      const result = await submitInquiry(values);
+      // If "Otro" is selected, ensure its description is included or handled
+      const submissionData = { ...values };
+      if (values.services.includes("other") && values.otherService) {
+        // You might want to modify how "other" is stored, e.g., replace "other" with "Otro: [description]"
+        // For now, we'll just ensure it's submitted.
+      } else if (values.services.includes("other") && !values.otherService) {
+         toast({
+           title: "Campo Requerido",
+           description: "Por favor, especifica el servicio 'Otro'.",
+           variant: "destructive",
+         });
+         setIsSubmitting(false);
+         return;
+      }
+
+
+      const result = await submitInquiry(submissionData);
       if (result.success) {
         toast({
           title: "¡Éxito!",
           description: result.message,
         });
         form.reset(); // Reset form on success
+        setShowOtherServiceInput(false); // Reset "Otro" input visibility
       } else {
         toast({
           title: "Error",
@@ -105,9 +133,11 @@ export function ContactForm() {
     }
   }
 
-  // Replace with your actual WhatsApp number (including country code without + or spaces)
-  const whatsappNumber = "1234567890"; // Example number
+  const whatsappNumber = "1234567890";
   const whatsappLink = `https://wa.me/${whatsappNumber}`;
+
+  const displayServices = [...servicesList, { id: "other", title: "Otro (Especificar abajo)", description: "", iconName: "", image: "", aiHint: "" }];
+
 
   return (
     <section id="contact" className="py-20 md:py-28 bg-background">
@@ -169,7 +199,6 @@ export function ContactForm() {
                          <FormItem>
                            <FormLabel>Fecha del Evento (Opcional)</FormLabel>
                            <FormControl>
-                             {/* Basic input for now, replace with Calendar/DatePicker later */}
                              <Input type="date" {...field} disabled={isSubmitting} />
                            </FormControl>
                            <FormMessage />
@@ -186,27 +215,27 @@ export function ContactForm() {
                         <div className="mb-4">
                           <FormLabel className="text-base">Servicios de Interés</FormLabel>
                         </div>
-                        <div className="grid grid-cols-2 gap-4">
-                          {services.map((item) => (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          {displayServices.map((service) => (
                             <FormField
-                              key={item.id}
+                              key={service.id}
                               control={form.control}
                               name="services"
                               render={({ field }) => {
                                 return (
                                   <FormItem
-                                    key={item.id}
+                                    key={service.id}
                                     className="flex flex-row items-start space-x-3 space-y-0"
                                   >
                                     <FormControl>
                                       <Checkbox
-                                        checked={field.value?.includes(item.id)}
+                                        checked={field.value?.includes(service.id)}
                                         onCheckedChange={(checked) => {
                                           return checked
-                                            ? field.onChange([...field.value, item.id])
+                                            ? field.onChange([...(field.value || []), service.id])
                                             : field.onChange(
-                                                field.value?.filter(
-                                                  (value) => value !== item.id
+                                                (field.value || []).filter(
+                                                  (value) => value !== service.id
                                                 )
                                               )
                                         }}
@@ -214,7 +243,7 @@ export function ContactForm() {
                                       />
                                     </FormControl>
                                     <FormLabel className="font-normal">
-                                      {item.label}
+                                      {service.title}
                                     </FormLabel>
                                   </FormItem>
                                 )
@@ -226,6 +255,22 @@ export function ContactForm() {
                       </FormItem>
                     )}
                   />
+
+                  {showOtherServiceInput && (
+                    <FormField
+                      control={form.control}
+                      name="otherService"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Especificar "Otro" Servicio</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Describe el servicio que necesitas" {...field} disabled={isSubmitting} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
 
 
                  <FormField
@@ -252,7 +297,6 @@ export function ContactForm() {
                </form>
              </Form>
 
-              {/* WhatsApp Link */}
              <div className="mt-6 text-center">
                 <p className="text-sm text-muted-foreground mb-2">O envíanos un mensaje directamente por WhatsApp:</p>
                  <Button variant="outline" asChild>
