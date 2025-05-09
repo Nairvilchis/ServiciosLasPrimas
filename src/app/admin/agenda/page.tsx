@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useState, useEffect, useTransition, Suspense } from 'react';
@@ -21,6 +22,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Label } from '@/components/ui/label';
+import { FormItem } from '@/components/ui/form'; // Added FormItem import
 
 
 export default function AgendaFinanzasPage() {
@@ -400,7 +402,7 @@ export default function AgendaFinanzasPage() {
                       <TableBody>
                          {purchases.map((purchase) => (
                               <TableRow key={purchase.id}>
-                                  <TableCell>{format(new Date(purchase.date), "PP", { locale: es })}</TableCell>
+                                  <TableCell>{isValid(parseISO(purchase.date)) ? format(parseISO(purchase.date), "PP", { locale: es }) : 'Fecha Inválida'}</TableCell>
                                   <TableCell>{purchase.description}</TableCell>
                                   <TableCell>{purchase.purchaserName || '-'}</TableCell>
                                   <TableCell className="text-right">{purchase.amount.toLocaleString('es-ES', { style: 'currency', currency: 'MXN' })}</TableCell>
@@ -476,7 +478,7 @@ export default function AgendaFinanzasPage() {
                               {budgets.map(budget => (
                                   <TableRow key={budget.id}>
                                       <TableCell>{budget.clientName}</TableCell>
-                                      <TableCell>{format(new Date(budget.eventDate), "PP", { locale: es })}</TableCell>
+                                      <TableCell>{isValid(parseISO(budget.eventDate)) ? format(parseISO(budget.eventDate), "PP", { locale: es }) : 'Fecha Inválida'}</TableCell>
                                       <TableCell className="text-right">{budget.total.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</TableCell>
                                       <TableCell className="text-right">
                                           <div className="flex justify-end space-x-2">
@@ -527,3 +529,4 @@ export default function AgendaFinanzasPage() {
     </div>
   );
 }
+
