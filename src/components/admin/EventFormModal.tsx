@@ -36,6 +36,7 @@ import { CalendarIcon, Loader2 } from 'lucide-react';
 import { Calendar } from '../ui/calendar';
 import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { cn } from "@/lib/utils"; // Added import for cn
 
 
 // Zod schema for input validation
