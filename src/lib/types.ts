@@ -19,8 +19,6 @@ export interface GalleryPhoto {
 }
 
 // Placeholder type for Lucide icon names.
-// Ideally, this should be a union of all possible lucide-react icon names.
-// For now, we use string to resolve the import error.
 export type LucideIconName = string;
 
 // Type for a calendar event
@@ -56,6 +54,28 @@ export interface SiteSetting {
   whatsappNumber: string;
   contactEmail: string;
   contactPhone: string;
-  // Add other footer/site details here if needed, e.g., copyright notice, social media links
   copyrightText?: string;
+}
+
+// Type for a budget item
+export interface BudgetItem {
+  id: string; // Can be a temporary client-side ID or MongoDB ObjectId string
+  name: string;
+  quantity: number;
+  price: number;
+  subtotal: number;
+}
+
+// Type for a budget
+export interface Budget {
+  id: string; // Unique identifier from MongoDB
+  clientName: string;
+  clientContact?: string;
+  eventDate: Date; // Store as Date in DB
+  eventLocation?: string;
+  eventDescription?: string;
+  items: BudgetItem[];
+  total: number;
+  notes?: string;
+  createdAt: Date; // Timestamp for when it was created
 }

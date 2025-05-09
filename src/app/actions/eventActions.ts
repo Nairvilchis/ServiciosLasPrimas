@@ -14,21 +14,23 @@ import {
   updateCalendarEvent,
   deleteCalendarEvent,
   addQuote,
-  updateSiteSettings, // Import updateSiteSettings
+  updateSiteSettings,
+  addBudget,
+  updateBudget,
+  deleteBudget,
 } from '@/services/eventData';
-import type { Service, GalleryPhoto, CalendarEvent, Quote, SiteSetting } from '@/lib/types';
+import type { Service, GalleryPhoto, CalendarEvent, Quote, SiteSetting, Budget, BudgetItem } from '@/lib/types';
 
 // --- Zod Schemas for Input Validation ---
 
 const ServiceInputSchema = z.object({
   title: z.string().min(3, "El título debe tener al menos 3 caracteres."),
   description: z.string().min(10, "La descripción debe tener al menos 10 caracteres."),
-  iconName: z.string().min(1, "Se requiere el nombre del ícono."), // Simple validation for now
+  iconName: z.string().min(1, "Se requiere el nombre del ícono."), 
   image: z.string().url("La imagen debe ser una URL válida."),
   aiHint: z.string().optional().default(""),
 });
 
-// Schema for updating a service (allows partial updates)
 const ServiceUpdateSchema = ServiceInputSchema.partial();
 
 const PhotoInputSchema = z.object({
@@ -37,13 +39,13 @@ const PhotoInputSchema = z.object({
   aiHint: z.string().optional().default(""),
 });
 
-// Schema for updating a photo (allows partial updates)
 const PhotoUpdateSchema = PhotoInputSchema.partial();
 
-const CalendarEventInputSchema = z.object({
+// Base schema for CalendarEvent without refinement
+const BaseCalendarEventInputSchema = z.object({
   title: z.string().min(3, "El título debe tener al menos 3 caracteres."),
   startDateTime: z.coerce.date({ required_error: "La fecha y hora de inicio son requeridas."}),
-  endDateTime: z.coerce.date().optional(),
+  endDateTime: z.coerce.date().optional().nullable(),
   description: z.string().optional(),
   clientName: z.string().optional(),
   clientContact: z.string().optional(),
@@ -51,20 +53,31 @@ const CalendarEventInputSchema = z.object({
   allDay: z.boolean().optional().default(false),
 });
 
-const CalendarEventUpdateSchema = CalendarEventInputSchema.partial();
+// Full schema with refinement for creation
+const CalendarEventInputSchema = BaseCalendarEventInputSchema.refine(data => {
+    if (data.endDateTime && data.startDateTime && data.startDateTime > data.endDateTime) {
+      return false;
+    }
+    return true;
+  }, {
+    message: "La fecha de finalización no puede ser anterior a la fecha de inicio.",
+    path: ["endDateTime"],
+});
 
-// Zod schema for Quote submissions
+// Update schema based on the partial base schema
+const CalendarEventUpdateSchema = BaseCalendarEventInputSchema.partial();
+
+
 const QuoteInputSchema = z.object({
   name: z.string().min(2, { message: "El nombre debe tener al menos 2 caracteres." }),
   email: z.string().email({ message: "Por favor ingresa un correo electrónico válido." }),
   phone: z.string().optional(),
-  eventDate: z.string().optional(), // Stays as string, can be converted later if needed
+  eventDate: z.string().optional(),
   services: z.array(z.string()).min(1, { message: "Debes seleccionar al menos un servicio." }),
   message: z.string().min(10, { message: "El mensaje debe tener al menos 10 caracteres." }),
   otherServiceDetail: z.string().optional(),
 });
 
-// Zod schema for Site Settings
 const SiteSettingsInputSchema = z.object({
   whatsappNumber: z.string().min(10, "El número de WhatsApp debe tener al menos 10 dígitos.").regex(/^\+?[1-9]\d{1,14}$/, "Número de WhatsApp inválido."),
   contactEmail: z.string().email("Correo electrónico de contacto inválido."),
@@ -72,14 +85,31 @@ const SiteSettingsInputSchema = z.object({
   copyrightText: z.string().optional(),
 });
 
+// Zod Schemas for Budgets
+const BudgetItemInputSchema = z.object({
+  id: z.string(), // Client-side temp ID, validated as string
+  name: z.string().min(1, "El nombre del ítem es requerido."),
+  quantity: z.coerce.number().min(0.01, "La cantidad debe ser mayor que cero."),
+  price: z.coerce.number().min(0, "El precio no puede ser negativo."),
+  subtotal: z.coerce.number(), // This will be calculated server-side
+});
+
+const BudgetInputSchema = z.object({
+  clientName: z.string().min(2, "El nombre del cliente es requerido."),
+  clientContact: z.string().optional(),
+  eventDate: z.coerce.date({ required_error: "La fecha del evento es requerida." }),
+  eventLocation: z.string().optional(),
+  eventDescription: z.string().optional(),
+  items: z.array(BudgetItemInputSchema),
+  total: z.coerce.number(), // This will be calculated server-side
+  notes: z.string().optional(),
+});
+
+const BudgetUpdateSchema = BudgetInputSchema.partial();
+
 
 // --- Server Actions ---
 
-/**
- * Server Action to add a new service.
- * Validates input and calls the data service function.
- * Revalidates the home page and services admin page paths.
- */
 export async function addServiceAction(formData: FormData) {
   const rawData = Object.fromEntries(formData.entries());
   const validatedFields = ServiceInputSchema.safeParse(rawData);
@@ -97,7 +127,7 @@ export async function addServiceAction(formData: FormData) {
     const newService = await addService(validatedFields.data);
     revalidatePath('/');
     revalidatePath('/#services');
-    revalidatePath('/admin/services'); // Revalidate the admin list page
+    revalidatePath('/admin/services'); 
     return { success: true, data: newService, message: "Servicio añadido con éxito." };
   } catch (error) {
     console.error("Error al añadir servicio:", error);
@@ -105,11 +135,6 @@ export async function addServiceAction(formData: FormData) {
   }
 }
 
-/**
- * Server Action to update an existing service.
- * Validates input and calls the data service function.
- * Revalidates the home page and services admin page paths.
- */
 export async function updateServiceAction(id: string, formData: FormData) {
   if (!id) {
      return { success: false, message: "Se requiere el ID del servicio para actualizar." };
@@ -126,7 +151,6 @@ export async function updateServiceAction(id: string, formData: FormData) {
      };
    }
 
-   // Ensure at least one field is being updated (though the service function handles empty updates)
    if (Object.keys(validatedFields.data).length === 0) {
         return { success: false, message: "No se enviaron cambios para actualizar." };
    }
@@ -139,7 +163,7 @@ export async function updateServiceAction(id: string, formData: FormData) {
     revalidatePath('/');
     revalidatePath('/#services');
     revalidatePath('/admin/services');
-    revalidatePath(`/admin/edit-service/${id}`); // Revalidate the edit page itself
+    revalidatePath(`/admin/edit-service/${id}`); 
     return { success: true, data: updatedService, message: "Servicio actualizado con éxito." };
   } catch (error) {
     console.error(`Error al actualizar servicio ${id}:`, error);
@@ -147,11 +171,6 @@ export async function updateServiceAction(id: string, formData: FormData) {
   }
 }
 
-/**
- * Server Action to delete a service.
- * Calls the data service function.
- * Revalidates the home page and services admin page paths.
- */
 export async function deleteServiceAction(id: string) {
    if (!id) {
      return { success: false, message: "Se requiere el ID del servicio para eliminar." };
@@ -172,11 +191,6 @@ export async function deleteServiceAction(id: string) {
 }
 
 
-/**
- * Server Action to add a new photo to the gallery.
- * Validates input and calls the data service function.
- * Revalidates the home page and gallery admin page paths.
- */
 export async function addPhotoAction(formData: FormData) {
   const rawData = Object.fromEntries(formData.entries());
   const validatedFields = PhotoInputSchema.safeParse(rawData);
@@ -194,7 +208,7 @@ export async function addPhotoAction(formData: FormData) {
     const newPhoto = await addPhoto(validatedFields.data);
     revalidatePath('/');
     revalidatePath('/#gallery');
-    revalidatePath('/admin/gallery'); // Revalidate the admin list page
+    revalidatePath('/admin/gallery'); 
     return { success: true, data: newPhoto, message: "Foto añadida con éxito." };
   } catch (error) {
     console.error("Error al añadir foto:", error);
@@ -204,11 +218,6 @@ export async function addPhotoAction(formData: FormData) {
 }
 
 
-/**
- * Server Action to update an existing photo.
- * Validates input and calls the data service function.
- * Revalidates the home page and gallery admin page paths.
- */
 export async function updatePhotoAction(id: string, formData: FormData) {
   if (!id) {
      return { success: false, message: "Se requiere el ID de la foto para actualizar." };
@@ -225,7 +234,6 @@ export async function updatePhotoAction(id: string, formData: FormData) {
      };
    }
 
-    // Ensure at least one field is being updated
    if (Object.keys(validatedFields.data).length === 0) {
         return { success: false, message: "No se enviaron cambios para actualizar." };
    }
@@ -238,7 +246,7 @@ export async function updatePhotoAction(id: string, formData: FormData) {
     revalidatePath('/');
     revalidatePath('/#gallery');
     revalidatePath('/admin/gallery');
-    revalidatePath(`/admin/edit-photo/${id}`); // Revalidate edit page
+    revalidatePath(`/admin/edit-photo/${id}`); 
     return { success: true, data: updatedPhoto, message: "Foto actualizada con éxito." };
   } catch (error) {
     console.error(`Error al actualizar foto ${id}:`, error);
@@ -247,11 +255,6 @@ export async function updatePhotoAction(id: string, formData: FormData) {
   }
 }
 
-/**
- * Server Action to delete a photo.
- * Calls the data service function.
- * Revalidates the home page and gallery admin page paths.
- */
 export async function deletePhotoAction(id: string) {
   if (!id) {
     return { success: false, message: "Se requiere el ID de la foto para eliminar." };
@@ -276,11 +279,11 @@ export async function addCalendarEventAction(formData: FormData) {
   const rawData = {
     title: formData.get('title'),
     startDateTime: formData.get('startDateTime'),
-    endDateTime: formData.get('endDateTime') || undefined, // Handle empty string for optional date
+    endDateTime: formData.get('endDateTime') || undefined, 
     description: formData.get('description') || undefined,
     clientName: formData.get('clientName') || undefined,
     clientContact: formData.get('clientContact') || undefined,
-    servicesInvolved: formData.getAll('servicesInvolved').filter(Boolean), // Filter out empty strings if any
+    servicesInvolved: formData.getAll('servicesInvolved').filter(Boolean), 
     allDay: formData.get('allDay') === 'on' || formData.get('allDay') === 'true',
   };
 
@@ -298,7 +301,7 @@ export async function addCalendarEventAction(formData: FormData) {
   try {
     const newEvent = await addCalendarEvent(validatedFields.data);
     revalidatePath('/admin/agenda');
-    revalidatePath('/admin/quotes'); // Revalidate quotes page as well
+    revalidatePath('/admin/quotes'); 
     return { success: true, data: newEvent, message: "Evento añadido con éxito." };
   } catch (error) {
     console.error("Error al añadir evento:", error);
@@ -321,17 +324,14 @@ export async function updateCalendarEventAction(id: string, formData: FormData) 
     allDay: formData.get('allDay') === 'on' || formData.get('allDay') === 'true',
   };
 
-
-  // Filter out undefined values so they don't overwrite existing fields if not provided
   const updateData: any = {};
   if (rawData.title) updateData.title = rawData.title;
   if (rawData.startDateTime) updateData.startDateTime = rawData.startDateTime;
-  if (rawData.endDateTime) updateData.endDateTime = rawData.endDateTime;
-  if (rawData.description) updateData.description = rawData.description;
-  if (rawData.clientName) updateData.clientName = rawData.clientName;
-  if (rawData.clientContact) updateData.clientContact = rawData.clientContact;
-  if (rawData.servicesInvolved && rawData.servicesInvolved.length > 0) updateData.servicesInvolved = rawData.servicesInvolved;
-  // allDay is boolean, send it if it changed
+  if (rawData.endDateTime !== undefined) updateData.endDateTime = rawData.endDateTime; // Allow null/undefined for clearing
+  if (rawData.description !== undefined) updateData.description = rawData.description;
+  if (rawData.clientName !== undefined) updateData.clientName = rawData.clientName;
+  if (rawData.clientContact !== undefined) updateData.clientContact = rawData.clientContact;
+  if (rawData.servicesInvolved && rawData.servicesInvolved.length > 0) updateData.servicesInvolved = rawData.servicesInvolved; else updateData.servicesInvolved = [];
   if (formData.has('allDay')) updateData.allDay = rawData.allDay;
 
 
@@ -348,6 +348,16 @@ export async function updateCalendarEventAction(id: string, formData: FormData) 
   if (Object.keys(validatedFields.data).length === 0) {
     return { success: false, message: "No se enviaron cambios para actualizar." };
   }
+
+  // Additional check for startDateTime vs endDateTime if both are present in the update
+  if (validatedFields.data.startDateTime && validatedFields.data.endDateTime && new Date(validatedFields.data.startDateTime) > new Date(validatedFields.data.endDateTime)) {
+    return {
+        success: false,
+        errors: { endDateTime: ["La fecha de finalización no puede ser anterior a la fecha de inicio."] },
+        message: "Validación fallida: La fecha de finalización es anterior a la fecha de inicio.",
+    };
+  }
+
 
   try {
     const updatedEvent = await updateCalendarEvent(id, validatedFields.data);
@@ -404,7 +414,7 @@ export async function addQuoteAction(formData: FormData) {
 
   try {
     const newQuote = await addQuote(validatedFields.data);
-    revalidatePath('/admin/quotes'); // Revalidate the quotes admin page
+    revalidatePath('/admin/quotes'); 
     return { success: true, data: newQuote, message: "Cotización enviada con éxito." };
   } catch (error) {
     console.error("Error al añadir cotización:", error);
@@ -431,12 +441,139 @@ export async function updateSiteSettingsAction(formData: FormData) {
     if (!updatedSettings) {
       return { success: false, message: "No se pudo actualizar la configuración del sitio." };
     }
-    revalidatePath('/'); // Revalidate home page to reflect changes in footer/contact
-    revalidatePath('/admin/settings'); // Revalidate settings page
+    revalidatePath('/'); 
+    revalidatePath('/admin/settings'); 
     return { success: true, data: updatedSettings, message: "Configuración del sitio actualizada con éxito." };
   } catch (error) {
     console.error("Error al actualizar la configuración del sitio:", error);
     const errorMessage = error instanceof Error ? error.message : "Ocurrió un error desconocido.";
     return { success: false, message: `Error al actualizar la configuración: ${errorMessage}` };
+  }
+}
+
+// --- Server Actions for Budgets ---
+function parseBudgetItemsFromFormData(formData: FormData): BudgetItem[] {
+  const itemsMap: { [key: string]: Partial<BudgetItem> & { index: number } } = {};
+  for (const [key, value] of formData.entries()) {
+    const itemMatch = key.match(/^items\[(\d+)\]\[(id|name|quantity|price)\]$/);
+    if (itemMatch) {
+      const index = parseInt(itemMatch[1], 10);
+      const field = itemMatch[2] as keyof Omit<BudgetItem, 'subtotal'>;
+      if (!itemsMap[index]) itemsMap[index] = { index };
+      if (field === 'quantity' || field === 'price') {
+        itemsMap[index][field] = parseFloat(value as string) as any;
+      } else {
+        itemsMap[index][field] = value as any;
+      }
+    }
+  }
+  return Object.values(itemsMap)
+    .sort((a,b) => a.index - b.index) // Ensure order
+    .map(item => ({
+      id: String(item.id || `temp-${Date.now()}-${Math.random().toString(36).substring(2,7)}`), // Ensure ID, even if temporary
+      name: String(item.name || ''),
+      quantity: Number(item.quantity || 0),
+      price: Number(item.price || 0),
+      subtotal: Number(item.quantity || 0) * Number(item.price || 0),
+  }));
+}
+
+export async function addBudgetAction(formData: FormData) {
+  const items = parseBudgetItemsFromFormData(formData);
+  const total = items.reduce((sum, item) => sum + item.subtotal, 0);
+
+  const rawData = {
+    clientName: formData.get('clientName') as string,
+    clientContact: formData.get('clientContact') as string || undefined,
+    eventDate: formData.get('eventDate') as string, // Will be coerced by Zod
+    eventLocation: formData.get('eventLocation') as string || undefined,
+    eventDescription: formData.get('eventDescription') as string || undefined,
+    items: items,
+    total: total,
+    notes: formData.get('notes') as string || undefined,
+  };
+
+  const validatedFields = BudgetInputSchema.safeParse(rawData);
+
+  if (!validatedFields.success) {
+    console.error("Error de Validación (Añadir Presupuesto):", validatedFields.error.flatten().fieldErrors);
+    return {
+      success: false,
+      errors: validatedFields.error.flatten().fieldErrors,
+      message: "Validación fallida. Por favor, revisa los campos del presupuesto.",
+    };
+  }
+
+  try {
+    const newBudget = await addBudget(validatedFields.data as Omit<Budget, 'id' | 'createdAt'>);
+    revalidatePath('/admin/agenda');
+    return { success: true, data: newBudget, message: "Presupuesto añadido con éxito." };
+  } catch (error) {
+    console.error("Error al añadir presupuesto:", error);
+    const errorMessage = error instanceof Error ? error.message : "Ocurrió un error desconocido.";
+    return { success: false, message: `Error al añadir el presupuesto: ${errorMessage}` };
+  }
+}
+
+export async function updateBudgetAction(id: string, formData: FormData) {
+  if (!id) {
+    return { success: false, message: "Se requiere el ID del presupuesto para actualizar." };
+  }
+  const items = parseBudgetItemsFromFormData(formData);
+  const total = items.reduce((sum, item) => sum + item.subtotal, 0);
+
+  const rawData = {
+    clientName: formData.get('clientName') as string,
+    clientContact: formData.get('clientContact') as string || undefined,
+    eventDate: formData.get('eventDate') as string,
+    eventLocation: formData.get('eventLocation') as string || undefined,
+    eventDescription: formData.get('eventDescription') as string || undefined,
+    items: items,
+    total: total,
+    notes: formData.get('notes') as string || undefined,
+  };
+
+  const validatedFields = BudgetUpdateSchema.safeParse(rawData);
+
+  if (!validatedFields.success) {
+    console.error("Error de Validación (Actualizar Presupuesto):", validatedFields.error.flatten().fieldErrors);
+    return {
+      success: false,
+      errors: validatedFields.error.flatten().fieldErrors,
+      message: "Validación fallida. Por favor, revisa los campos del presupuesto.",
+    };
+  }
+  if (Object.keys(validatedFields.data).length === 0) {
+    return { success: false, message: "No se enviaron cambios para actualizar." };
+  }
+
+  try {
+    const updatedBudget = await updateBudget(id, validatedFields.data);
+    if (!updatedBudget) {
+      return { success: false, message: `Presupuesto con ID ${id} no encontrado.` };
+    }
+    revalidatePath('/admin/agenda');
+    return { success: true, data: updatedBudget, message: "Presupuesto actualizado con éxito." };
+  } catch (error) {
+    console.error(`Error al actualizar presupuesto ${id}:`, error);
+    const errorMessage = error instanceof Error ? error.message : "Ocurrió un error desconocido.";
+    return { success: false, message: `Error al actualizar el presupuesto: ${errorMessage}` };
+  }
+}
+
+export async function deleteBudgetAction(id: string) {
+  if (!id) {
+    return { success: false, message: "Se requiere el ID del presupuesto para eliminar." };
+  }
+  try {
+    const deleted = await deleteBudget(id);
+    if (!deleted) {
+      return { success: false, message: `Presupuesto con ID ${id} no encontrado o no se pudo eliminar.` };
+    }
+    revalidatePath('/admin/agenda');
+    return { success: true, message: "Presupuesto eliminado con éxito." };
+  } catch (error) {
+    console.error(`Error al eliminar presupuesto ${id}:`, error);
+    return { success: false, message: "Error al eliminar el presupuesto." };
   }
 }
