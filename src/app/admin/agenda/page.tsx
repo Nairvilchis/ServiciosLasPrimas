@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState, useEffect, useTransition } from 'react';
+import React, { useState, useEffect, useTransition, Suspense } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -29,6 +29,7 @@ export default function AgendaFinanzasPage() {
   const [eventToDelete, setEventToDelete] = useState<CalendarEvent | null>(null);
   const [isDeleting, startDeleteTransition] = useTransition();
   const [selectedCalendarDate, setSelectedCalendarDate] = useState<Date | undefined>(undefined); // Initialize to undefined
+  const [isClient, setIsClient] = useState(false); // To track client-side rendering
 
 
   const fetchEvents = async () => {
@@ -45,6 +46,7 @@ export default function AgendaFinanzasPage() {
   };
 
   useEffect(() => {
+    setIsClient(true); // Component has mounted, client-side
     setSelectedCalendarDate(new Date()); // Set initial date on client-side
     fetchEvents();
   }, []); // Empty dependency array ensures this runs once on mount
@@ -129,16 +131,19 @@ export default function AgendaFinanzasPage() {
 
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div className="lg:col-span-1 flex justify-center">
-                       <Calendar
-                          mode="single"
-                          selected={selectedCalendarDate}
-                          onSelect={setSelectedCalendarDate}
-                          className="rounded-md border shadow"
-                          locale={es}
-                          modifiers={{ booked: eventDates }}
-                          modifiersClassNames={{ booked: 'bg-primary/20 text-primary-foreground rounded-full' }}
-
-                       />
+                      {isClient && selectedCalendarDate ? (
+                         <Calendar
+                            mode="single"
+                            selected={selectedCalendarDate}
+                            onSelect={setSelectedCalendarDate}
+                            className="rounded-md border shadow"
+                            locale={es}
+                            modifiers={{ booked: eventDates }}
+                            modifiersClassNames={{ booked: 'bg-primary/20 text-primary-foreground rounded-full' }}
+                         />
+                      ) : (
+                        <Skeleton className="h-[290px] w-[280px] rounded-md" /> // Adjust skeleton size to match calendar
+                      )}
                     </div>
                     <div className="lg:col-span-2">
                         <h3 className="text-lg font-semibold mb-3 text-secondary-foreground/90">Próximos Eventos:</h3>
