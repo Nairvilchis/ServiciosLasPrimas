@@ -18,8 +18,11 @@ import {
   addBudget,
   updateBudget,
   deleteBudget,
+  addPurchase, // Added
+  updatePurchase, // Added
+  deletePurchase, // Added
 } from '@/services/eventData';
-import type { Service, GalleryPhoto, CalendarEvent, Quote, SiteSetting, Budget, BudgetItem } from '@/lib/types';
+import type { Service, GalleryPhoto, CalendarEvent, Quote, SiteSetting, Budget, BudgetItem, Purchase } from '@/lib/types'; // Added Purchase
 
 // --- Zod Schemas for Input Validation ---
 
@@ -106,6 +109,16 @@ const BudgetInputSchema = z.object({
 });
 
 const BudgetUpdateSchema = BudgetInputSchema.partial();
+
+// Zod Schemas for Purchases
+const PurchaseInputSchema = z.object({
+  date: z.coerce.date({ required_error: "La fecha de la compra es requerida."}),
+  description: z.string().min(3, "La descripción debe tener al menos 3 caracteres."),
+  amount: z.coerce.number().min(0.01, "El monto debe ser mayor que cero."),
+  purchaserName: z.string().optional(),
+});
+
+const PurchaseUpdateSchema = PurchaseInputSchema.partial();
 
 
 // --- Server Actions ---
@@ -575,5 +588,100 @@ export async function deleteBudgetAction(id: string) {
   } catch (error) {
     console.error(`Error al eliminar presupuesto ${id}:`, error);
     return { success: false, message: "Error al eliminar el presupuesto." };
+  }
+}
+
+
+// --- Server Actions for Purchases ---
+export async function addPurchaseAction(formData: FormData) {
+  const rawData = {
+    date: formData.get('date') as string,
+    description: formData.get('description') as string,
+    amount: formData.get('amount') as string,
+    purchaserName: formData.get('purchaserName') as string || undefined,
+  };
+  const validatedFields = PurchaseInputSchema.safeParse(rawData);
+
+  if (!validatedFields.success) {
+    console.error("Error de Validación (Añadir Compra):", validatedFields.error.flatten().fieldErrors);
+    return {
+      success: false,
+      errors: validatedFields.error.flatten().fieldErrors,
+      message: "Validación fallida. Por favor, revisa los campos de la compra.",
+    };
+  }
+
+  try {
+    const newPurchase = await addPurchase(validatedFields.data);
+    revalidatePath('/admin/agenda');
+    return { success: true, data: newPurchase, message: "Compra añadida con éxito." };
+  } catch (error) {
+    console.error("Error al añadir compra:", error);
+    const errorMessage = error instanceof Error ? error.message : "Ocurrió un error desconocido.";
+    return { success: false, message: `Error al añadir la compra: ${errorMessage}` };
+  }
+}
+
+export async function updatePurchaseAction(id: string, formData: FormData) {
+  if (!id) {
+    return { success: false, message: "Se requiere el ID de la compra para actualizar." };
+  }
+  const rawData = {
+    date: formData.get('date') as string,
+    description: formData.get('description') as string,
+    amount: formData.get('amount') as string,
+    purchaserName: formData.get('purchaserName') as string || undefined,
+  };
+
+  // Construct an object with only fields that are present in formData
+  const updateData: Partial<Purchase> = {};
+  if (formData.has('date')) updateData.date = new Date(rawData.date); // Ensure date is converted
+  if (formData.has('description')) updateData.description = rawData.description;
+  if (formData.has('amount')) updateData.amount = parseFloat(rawData.amount);
+  if (formData.has('purchaserName')) updateData.purchaserName = rawData.purchaserName;
+
+
+  const validatedFields = PurchaseUpdateSchema.safeParse(updateData);
+
+  if (!validatedFields.success) {
+    console.error("Error de Validación (Actualizar Compra):", validatedFields.error.flatten().fieldErrors);
+    return {
+      success: false,
+      errors: validatedFields.error.flatten().fieldErrors,
+      message: "Validación fallida. Por favor, revisa los campos de la compra.",
+    };
+  }
+  if (Object.keys(validatedFields.data).length === 0) {
+    return { success: false, message: "No se enviaron cambios para actualizar." };
+  }
+
+  try {
+    const updatedPurchase = await updatePurchase(id, validatedFields.data);
+    if (!updatedPurchase) {
+      return { success: false, message: `Compra con ID ${id} no encontrada.` };
+    }
+    revalidatePath('/admin/agenda');
+    return { success: true, data: updatedPurchase, message: "Compra actualizada con éxito." };
+  } catch (error) {
+    console.error(`Error al actualizar compra ${id}:`, error);
+    const errorMessage = error instanceof Error ? error.message : "Ocurrió un error desconocido.";
+    return { success: false, message: `Error al actualizar la compra: ${errorMessage}` };
+  }
+}
+
+export async function deletePurchaseAction(id: string) {
+  if (!id) {
+    return { success: false, message: "Se requiere el ID de la compra para eliminar." };
+  }
+  try {
+    const deleted = await deletePurchase(id);
+    if (!deleted) {
+      return { success: false, message: `Compra con ID ${id} no encontrada o no se pudo eliminar.` };
+    }
+    revalidatePath('/admin/agenda');
+    return { success: true, message: "Compra eliminada con éxito." };
+  } catch (error) {
+    console.error(`Error al eliminar compra ${id}:`, error);
+    return { success: false, message: "Error al eliminar la compra." };
   }
 }

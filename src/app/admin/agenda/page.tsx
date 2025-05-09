@@ -8,13 +8,13 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowLeft, CalendarClock, ShoppingCart, FileText, PlusCircle, Edit, Trash2, Loader2, Eye } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { getCalendarEvents, getServices, getBudgets } from '@/services/eventData'; 
-import type { CalendarEvent, Service, Budget, BudgetItem } from '@/lib/types';
+import { getCalendarEvents, getBudgets, getPurchases } from '@/services/eventData'; 
+import type { CalendarEvent, Budget, BudgetItem, Purchase } from '@/lib/types';
 import { format, parseISO, isValid } from 'date-fns';
 import { es } from 'date-fns/locale';
 import EventFormModal from '@/components/admin/EventFormModal';
 import { useToast } from '@/hooks/use-toast';
-import { deleteCalendarEventAction, addBudgetAction, updateBudgetAction, deleteBudgetAction } from '@/app/actions/eventActions';
+import { deleteCalendarEventAction, addBudgetAction, updateBudgetAction, deleteBudgetAction, addPurchaseAction, updatePurchaseAction, deletePurchaseAction } from '@/app/actions/eventActions';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Calendar } from '@/components/ui/calendar';
 import { Table, TableBody, TableCell, TableHeader, TableRow, TableHead } from '@/components/ui/table';
@@ -40,15 +40,21 @@ export default function AgendaFinanzasPage() {
 
   const [isClient, setIsClient] = useState(false);
 
-  // Purchases state (remains local for now as per original structure)
-  const [purchases, setPurchases] = useState<any[]>([]); // Define specific type if needed
-  const [nextPurchaseId, setNextPurchaseId] = useState(1);
+  // Purchases state
+  const [purchases, setPurchases] = useState<Purchase[]>([]);
+  const [isLoadingPurchases, setIsLoadingPurchases] = useState(true);
+  const [isSavingPurchase, startPurchaseSaveTransition] = useTransition();
+  const [isDeletingPurchase, startPurchaseDeleteTransition] = useTransition();
+  const [purchaseToDelete, setPurchaseToDelete] = useState<Purchase | null>(null);
+  const [purchaseToEdit, setPurchaseToEdit] = useState<Purchase | null>(null);
+  const [isEditPurchaseMode, setIsEditPurchaseMode] = useState(false);
+  
+  // Form fields for new/edit purchase
   const [newPurchaseDate, setNewPurchaseDate] = useState('');
   const [newPurchaseDescription, setNewPurchaseDescription] = useState('');
   const [newPurchaseAmount, setNewPurchaseAmount] = useState('');
   const [newPurchaserName, setNewPurchaserName] = useState('');
-  const [isEditPurchaseMode, setIsEditPurchaseMode] = useState(false);
-  const [purchaseToEdit, setPurchaseToEdit] = useState<any | null>(null);
+
 
   // Budgets state and server interaction
   const [budgets, setBudgets] = useState<Budget[]>([]);
@@ -76,28 +82,32 @@ export default function AgendaFinanzasPage() {
   const [selectedBudgetDetails, setSelectedBudgetDetails] = useState<Budget | null>(null); 
 
 
-  const fetchEventsAndBudgets = async () => {
+  const fetchAllData = async () => {
     setIsLoadingEvents(true);
     setIsLoadingBudgets(true);
+    setIsLoadingPurchases(true);
     try {
-      const [fetchedEvents, fetchedBudgets] = await Promise.all([
+      const [fetchedEvents, fetchedBudgets, fetchedPurchases] = await Promise.all([
         getCalendarEvents(),
-        getBudgets()
+        getBudgets(),
+        getPurchases()
       ]);
       setEvents(fetchedEvents);
       setBudgets(fetchedBudgets);
+      setPurchases(fetchedPurchases);
     } catch (error) {
       console.error("Error al cargar datos:", error);
-      toast({ title: "Error", description: "No se pudieron cargar los datos de agenda o presupuestos.", variant: "destructive" });
+      toast({ title: "Error", description: "No se pudieron cargar los datos.", variant: "destructive" });
     } finally {
       setIsLoadingEvents(false);
       setIsLoadingBudgets(false);
+      setIsLoadingPurchases(false);
     }
   };
 
   useEffect(() => {
     setIsClient(true);
-    fetchEventsAndBudgets();
+    fetchAllData();
   }, []);
 
   const handleOpenModal = (event?: CalendarEvent) => {
@@ -111,7 +121,7 @@ export default function AgendaFinanzasPage() {
   };
 
   const handleEventSaved = () => {
-    fetchEventsAndBudgets(); // Refetch all data
+    fetchAllData(); 
   };
 
   const handleDeleteEventClick = (event: CalendarEvent) => {
@@ -124,7 +134,7 @@ export default function AgendaFinanzasPage() {
       const result = await deleteCalendarEventAction(eventToDelete.id);
       if (result.success) {
         toast({ title: '¡Éxito!', description: result.message });
-        fetchEventsAndBudgets(); // Refetch
+        fetchAllData();
       } else {
         toast({ title: 'Error', description: result.message || 'Error al eliminar el evento.', variant: "destructive" });
       }
@@ -132,55 +142,75 @@ export default function AgendaFinanzasPage() {
     });
   };
 
-  const handleAddPurchase = (e: React.FormEvent) => {
+  const resetPurchaseForm = () => {
+    setNewPurchaseDate('');
+    setNewPurchaseDescription('');
+    setNewPurchaseAmount('');
+    setNewPurchaserName('');
+    setIsEditPurchaseMode(false);
+    setPurchaseToEdit(null);
+  }
+
+  const handleAddOrUpdatePurchase = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newPurchaseDate || !newPurchaseDescription || !newPurchaseAmount) {
         toast({ title: "Campos incompletos", description: "Por favor, completa fecha, descripción y monto.", variant: "destructive"});
         return;
     }
-    if (isEditPurchaseMode && purchaseToEdit) {
-      setPurchases(purchases.map(p => p.id === purchaseToEdit.id ? { ...p, date: newPurchaseDate, description: newPurchaseDescription, amount: parseFloat(newPurchaseAmount) || 0, purchaserName: newPurchaserName } : p));
-      toast({title: "Éxito", description: "Compra actualizada."})
-    } else {
-      const newPurchase = {
-        id: nextPurchaseId,
-        date: newPurchaseDate,
-        description: newPurchaseDescription,
-        amount: parseFloat(newPurchaseAmount) || 0,
-        purchaserName: newPurchaserName,
-      };
-      setPurchases([...purchases, newPurchase]);
-      setNextPurchaseId(nextPurchaseId + 1);
-      toast({title: "Éxito", description: "Compra agregada."})
-    }
-    setIsEditPurchaseMode(false);
-    setPurchaseToEdit(null);
-    setNewPurchaseDate('');
-    setNewPurchaseDescription('');
-    setNewPurchaseAmount('');
-    setNewPurchaserName('');
+
+    const formData = new FormData();
+    formData.append('date', newPurchaseDate);
+    formData.append('description', newPurchaseDescription);
+    formData.append('amount', newPurchaseAmount);
+    if (newPurchaserName) formData.append('purchaserName', newPurchaserName);
+
+    startPurchaseSaveTransition(async () => {
+      const action = isEditPurchaseMode && purchaseToEdit
+        ? updatePurchaseAction.bind(null, purchaseToEdit.id)
+        : addPurchaseAction;
+      
+      const result = await action(formData);
+
+      if (result.success) {
+        toast({title: "Éxito", description: result.message});
+        fetchAllData();
+        resetPurchaseForm();
+      } else {
+        toast({title: "Error", description: result.message || "Error al guardar la compra.", variant: "destructive"});
+         if (result.errors) {
+           console.error("Errores de campo (compra):", result.errors);
+         }
+      }
+    });
   };
 
-  const handleEditPurchaseClick = (purchase: any) => {
+  const handleEditPurchaseClick = (purchase: Purchase) => {
     setIsEditPurchaseMode(true);
     setPurchaseToEdit(purchase);
-    setNewPurchaseDate(purchase.date);
+    setNewPurchaseDate(format(new Date(purchase.date), "yyyy-MM-dd"));
     setNewPurchaseDescription(purchase.description);
     setNewPurchaseAmount(String(purchase.amount));
     setNewPurchaserName(purchase.purchaserName || '');
   };
 
-  const handleDeletePurchase = (id: number) => {
-    setPurchases(purchases.filter(p => p.id !== id));
-    toast({title: "Éxito", description: "Compra eliminada."})
+ const handleDeletePurchaseClick = (purchase: Purchase) => {
+    setPurchaseToDelete(purchase);
   };
 
-  const calculateItemSubtotal = (priceStr: string, quantityStr: string) => {
-    const price = parseFloat(priceStr);
-    const quantity = parseInt(quantityStr, 10);
-    if (isNaN(price) || isNaN(quantity)) return 0;
-    return price * quantity;
+  const handleConfirmPurchaseDelete = () => {
+    if (!purchaseToDelete) return;
+    startPurchaseDeleteTransition(async () => {
+      const result = await deletePurchaseAction(purchaseToDelete.id);
+      if (result.success) {
+        toast({ title: "Éxito", description: result.message });
+        fetchAllData();
+      } else {
+        toast({ title: "Error", description: result.message || "Error al eliminar la compra.", variant: "destructive" });
+      }
+      setPurchaseToDelete(null);
+    });
   };
+
 
   const calculateBudgetTotal = (items: Array<{ price: number; quantity: number }>) => {
     return items.reduce((total, item) => total + (item.price * item.quantity || 0), 0);
@@ -217,6 +247,8 @@ export default function AgendaFinanzasPage() {
     setNewBudgetItems([]);
     setNewBudgetNotes('');
     setNextBudgetItemId(0); 
+    setIsEditBudgetMode(false);
+    setBudgetToEdit(null);
   }
 
   const handleSaveBudget = async (e: React.FormEvent) => {
@@ -247,10 +279,8 @@ export default function AgendaFinanzasPage() {
 
       if (result.success) {
         toast({title: "Éxito", description: result.message });
-        fetchEventsAndBudgets(); // Refetch budgets
+        fetchAllData(); 
         resetBudgetForm();
-        setIsEditBudgetMode(false);
-        setBudgetToEdit(null);
       } else {
         toast({title: "Error", description: result.message || "Error al guardar el presupuesto.", variant: "destructive"});
       }
@@ -280,7 +310,7 @@ export default function AgendaFinanzasPage() {
         const result = await deleteBudgetAction(budgetToDelete.id);
         if (result.success) {
             toast({title: "Éxito", description: result.message});
-            fetchEventsAndBudgets(); // Refetch
+            fetchAllData();
         } else {
             toast({title: "Error", description: result.message || "Error al eliminar el presupuesto.", variant: "destructive"});
         }
@@ -403,7 +433,7 @@ export default function AgendaFinanzasPage() {
                   <CardDescription>Lleva un control de todas las compras y gastos relacionados con tu negocio.</CardDescription>
                 </CardHeader>
                  <CardContent className="space-y-4 p-6">
-                  <form onSubmit={handleAddPurchase} className="space-y-4">
+                  <form onSubmit={handleAddOrUpdatePurchase} className="space-y-4">
                     <h3 className="text-lg font-semibold mb-2">{isEditPurchaseMode ? 'Editar Compra' : 'Agregar Nueva Compra'}</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <FormItem>
@@ -423,11 +453,19 @@ export default function AgendaFinanzasPage() {
                         <Label htmlFor="purchaseAmount">Monto</Label>
                         <Input type="number" id="purchaseAmount" placeholder="0.00" value={newPurchaseAmount} onChange={(e) => setNewPurchaseAmount(e.target.value)} step="0.01" required/>
                     </FormItem>
-                    <Button type="submit" className="w-full md:w-auto">{isEditPurchaseMode ? 'Actualizar Compra' : 'Agregar Compra'}</Button>
-                    {isEditPurchaseMode && <Button type="button" variant="outline" onClick={() => {setIsEditPurchaseMode(false); setPurchaseToEdit(null); setNewPurchaseDate(''); setNewPurchaseDescription(''); setNewPurchaseAmount(''); setNewPurchaserName('');}} className="w-full md:w-auto ml-2">Cancelar Edición</Button>}
+                    <Button type="submit" className="w-full md:w-auto" disabled={isSavingPurchase}>
+                        {isSavingPurchase ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                        {isEditPurchaseMode ? 'Actualizar Compra' : 'Agregar Compra'}
+                    </Button>
+                    {isEditPurchaseMode && <Button type="button" variant="outline" onClick={resetPurchaseForm} className="w-full md:w-auto ml-2">Cancelar Edición</Button>}
                   </form>
                   <h3 className="text-lg font-semibold mt-6 mb-2">Historial de Compras</h3>
-                  {purchases.length === 0 ? <p className="text-muted-foreground">No hay compras registradas.</p> : (
+                  {isLoadingPurchases ? (
+                    <div className="space-y-3">
+                        <Skeleton className="h-12 w-full rounded-md" />
+                        <Skeleton className="h-12 w-full rounded-md" />
+                    </div>
+                  ) : purchases.length === 0 ? <p className="text-muted-foreground">No hay compras registradas.</p> : (
                   <Table>
                     <TableHeader>
                         <TableRow>
@@ -441,14 +479,16 @@ export default function AgendaFinanzasPage() {
                       <TableBody>
                          {purchases.map((purchase) => (
                               <TableRow key={purchase.id}>
-                                  <TableCell>{isValid(parseISO(purchase.date)) ? format(parseISO(purchase.date), "PP", { locale: es }) : 'Fecha Inválida'}</TableCell>
+                                  <TableCell>{isValid(new Date(purchase.date)) ? format(new Date(purchase.date), "PP", { locale: es }) : 'Fecha Inválida'}</TableCell>
                                   <TableCell>{purchase.description}</TableCell>
                                   <TableCell>{purchase.purchaserName || '-'}</TableCell>
                                   <TableCell className="text-right">{purchase.amount.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</TableCell>
                                   <TableCell className="text-right">
                                        <div className="flex justify-end space-x-2">
-                                          <Button variant="outline" size="sm" onClick={() => handleEditPurchaseClick(purchase)}><Edit className="h-3 w-3"/></Button>
-                                          <Button variant="destructive" size="sm" onClick={() => handleDeletePurchase(purchase.id)}><Trash2 className="h-3 w-3"/></Button>
+                                          <Button variant="outline" size="sm" onClick={() => handleEditPurchaseClick(purchase)} disabled={isSavingPurchase || isDeletingPurchase}><Edit className="h-3 w-3"/></Button>
+                                          <Button variant="destructive" size="sm" onClick={() => handleDeletePurchaseClick(purchase)} disabled={isSavingPurchase || isDeletingPurchase}>
+                                            {isDeletingPurchase && purchaseToDelete?.id === purchase.id ? <Loader2 className="h-3 w-3 animate-spin"/> : <Trash2 className="h-3 w-3"/>}
+                                          </Button>
                                         </div>
                                   </TableCell>
                               </TableRow>
@@ -497,7 +537,7 @@ export default function AgendaFinanzasPage() {
                           <FormItem><Label htmlFor="budgetNotes">Notas Adicionales</Label><Textarea id="budgetNotes" value={newBudgetNotes} onChange={(e) => setNewBudgetNotes(e.target.value)} /></FormItem>
                           
                           <div className="flex justify-end space-x-2">
-                            {isEditBudgetMode && <Button type="button" variant="outline" onClick={() => {setIsEditBudgetMode(false); setBudgetToEdit(null); resetBudgetForm();}}>Cancelar Edición</Button>}
+                            {isEditBudgetMode && <Button type="button" variant="outline" onClick={resetBudgetForm}>Cancelar Edición</Button>}
                             <Button type="submit" disabled={isSavingBudget}>
                                 {isSavingBudget && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                 {isEditBudgetMode ? 'Actualizar Presupuesto' : 'Guardar Presupuesto'}
@@ -594,6 +634,25 @@ export default function AgendaFinanzasPage() {
             <AlertDialogAction onClick={handleConfirmBudgetDelete} disabled={isDeletingBudget} className="bg-destructive hover:bg-destructive/90">
               {isDeletingBudget ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
               Eliminar Presupuesto
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      
+      <AlertDialog open={!!purchaseToDelete} onOpenChange={(open) => !open && setPurchaseToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Estás seguro de eliminar esta compra?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción no se puede deshacer. Esto eliminará permanentemente la compra:
+              <span className="font-semibold"> "{purchaseToDelete?.description}"</span> del <span className="font-semibold">{purchaseToDelete?.date ? format(new Date(purchaseToDelete.date), "PP", {locale: es}) : ''}</span>.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setPurchaseToDelete(null)} disabled={isDeletingPurchase}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmPurchaseDelete} disabled={isDeletingPurchase} className="bg-destructive hover:bg-destructive/90">
+              {isDeletingPurchase ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              Eliminar Compra
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

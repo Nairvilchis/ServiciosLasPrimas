@@ -3,7 +3,7 @@
 import mongoose from 'mongoose';
 // Importa la biblioteca Mongoose, que se utiliza para interactuar con MongoDB.
 
-import type { Service, GalleryPhoto, CalendarEvent, Quote, SiteSetting, Budget, BudgetItem } from '@/lib/types'; // Added SiteSetting, Budget, BudgetItem
+import type { Service, GalleryPhoto, CalendarEvent, Quote, SiteSetting, Budget, BudgetItem, Purchase } from '@/lib/types'; // Added Purchase
 // Importa los tipos `Service` y `GalleryPhoto` desde el archivo de tipos. Esto asegura que los datos cumplan con las interfaces definidas.
 
 import { connectDB } from '@/config/db';
@@ -83,6 +83,15 @@ const budgetSchema = new mongoose.Schema<Budget>({
   createdAt: { type: Date, default: Date.now, required: true },
 });
 
+const purchaseSchema = new mongoose.Schema<Purchase>({
+  id: { type: String, required: true, unique: true },
+  date: { type: Date, required: true },
+  description: { type: String, required: true },
+  amount: { type: Number, required: true },
+  purchaserName: { type: String },
+  createdAt: { type: Date, default: Date.now, required: true },
+});
+
 
 const ServiceModel = mongoose.models.Service || mongoose.model<Service>('Service', serviceSchema);
 const PhotoModel = mongoose.models.GalleryPhoto || mongoose.model<GalleryPhoto>('GalleryPhoto', photoSchema);
@@ -90,6 +99,7 @@ const CalendarEventModel = mongoose.models.CalendarEvent || mongoose.model<Calen
 const QuoteModel = mongoose.models.Quote || mongoose.model<Quote>('Quote', quoteSchema);
 const SiteSettingModel = mongoose.models.SiteSetting || mongoose.model<SiteSetting>('SiteSetting', siteSettingSchema);
 const BudgetModel = mongoose.models.Budget || mongoose.model<Budget>('Budget', budgetSchema);
+const PurchaseModel = mongoose.models.Purchase || mongoose.model<Purchase>('Purchase', purchaseSchema);
 
 
 // --- Funciones de Servicio ---
@@ -311,4 +321,34 @@ export async function deleteBudget(id: string): Promise<boolean> {
     return true;
   }
   return false;
+}
+
+// --- Funciones de Compras (Purchases) ---
+export async function getPurchases(): Promise<Purchase[]> {
+  const purchases = await PurchaseModel.find().sort({ date: -1 }).lean();
+  return JSON.parse(JSON.stringify(purchases)) as Purchase[];
+}
+
+export async function addPurchase(purchaseData: Omit<Purchase, 'id' | 'createdAt'>): Promise<Purchase> {
+  const newId = 'purchase-' + Date.now();
+  const newPurchase = new PurchaseModel({
+    ...purchaseData,
+    id: newId,
+    createdAt: new Date(),
+  });
+  await newPurchase.save();
+  return JSON.parse(JSON.stringify(newPurchase)) as Purchase;
+}
+
+export async function updatePurchase(id: string, updateData: Partial<Omit<Purchase, 'id' | 'createdAt'>>): Promise<Purchase | null> {
+  const updatedPurchase = await PurchaseModel.findOneAndUpdate({ id }, updateData, { new: true }).lean();
+  if (updatedPurchase) {
+    return JSON.parse(JSON.stringify(updatedPurchase)) as Purchase;
+  }
+  return null;
+}
+
+export async function deletePurchase(id: string): Promise<boolean> {
+  const result = await PurchaseModel.deleteOne({ id });
+  return result.deletedCount > 0;
 }

@@ -79,3 +79,13 @@ export interface Budget {
   notes?: string;
   createdAt: Date; // Timestamp for when it was created
 }
+
+// Type for a purchase/expense
+export interface Purchase {
+  id: string; // Unique identifier from MongoDB
+  date: Date;
+  description: string;
+  amount: number;
+  purchaserName?: string; // Optional, who made the purchase
+  createdAt: Date; // Timestamp for when it was created/recorded
+}
