@@ -13,8 +13,9 @@ import {
   addCalendarEvent,
   updateCalendarEvent,
   deleteCalendarEvent,
+  addQuote, // Import addQuote
 } from '@/services/eventData';
-import type { Service, GalleryPhoto, CalendarEvent } from '@/lib/types';
+import type { Service, GalleryPhoto, CalendarEvent, Quote } from '@/lib/types';
 
 // --- Zod Schemas for Input Validation ---
 
@@ -50,6 +51,17 @@ const CalendarEventInputSchema = z.object({
 });
 
 const CalendarEventUpdateSchema = CalendarEventInputSchema.partial();
+
+// Zod schema for Quote submissions
+const QuoteInputSchema = z.object({
+  name: z.string().min(2, { message: "El nombre debe tener al menos 2 caracteres." }),
+  email: z.string().email({ message: "Por favor ingresa un correo electrónico válido." }),
+  phone: z.string().optional(),
+  eventDate: z.string().optional(), // Stays as string, can be converted later if needed
+  services: z.array(z.string()).min(1, { message: "Debes seleccionar al menos un servicio." }),
+  message: z.string().min(10, { message: "El mensaje debe tener al menos 10 caracteres." }),
+  otherServiceDetail: z.string().optional(),
+});
 
 
 // --- Server Actions ---
@@ -277,6 +289,7 @@ export async function addCalendarEventAction(formData: FormData) {
   try {
     const newEvent = await addCalendarEvent(validatedFields.data);
     revalidatePath('/admin/agenda');
+    revalidatePath('/admin/quotes'); // Revalidate quotes page as well
     return { success: true, data: newEvent, message: "Evento añadido con éxito." };
   } catch (error) {
     console.error("Error al añadir evento:", error);
@@ -354,5 +367,38 @@ export async function deleteCalendarEventAction(id: string) {
   } catch (error) {
     console.error(`Error al eliminar evento ${id}:`, error);
     return { success: false, message: "Error al eliminar el evento." };
+  }
+}
+
+// --- Server Action for Quotes ---
+export async function addQuoteAction(formData: FormData) {
+  const rawData = {
+    name: formData.get('name') as string,
+    email: formData.get('email') as string,
+    phone: formData.get('phone') as string || undefined,
+    eventDate: formData.get('eventDate') as string || undefined,
+    services: formData.getAll('services') as string[],
+    message: formData.get('message') as string,
+    otherServiceDetail: formData.get('otherServiceDetail') as string || undefined,
+  };
+
+  const validatedFields = QuoteInputSchema.safeParse(rawData);
+
+  if (!validatedFields.success) {
+    console.error("Error de Validación (Añadir Cotización):", validatedFields.error.flatten().fieldErrors);
+    return {
+      success: false,
+      errors: validatedFields.error.flatten().fieldErrors,
+      message: "Validación fallida. Por favor, revisa los campos de la cotización.",
+    };
+  }
+
+  try {
+    const newQuote = await addQuote(validatedFields.data);
+    revalidatePath('/admin/quotes'); // Revalidate the quotes admin page
+    return { success: true, data: newQuote, message: "Cotización enviada con éxito." };
+  } catch (error) {
+    console.error("Error al añadir cotización:", error);
+    return { success: false, message: "Error al enviar la cotización." };
   }
 }

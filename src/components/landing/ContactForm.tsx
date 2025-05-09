@@ -19,9 +19,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import React from "react";
-import { MessageSquare } from 'lucide-react';
+import { MessageSquare, Loader2 } from 'lucide-react'; // Added Loader2
 import Link from 'next/link';
 import type { Service } from '@/lib/types'; // Import Service type
+import { addQuoteAction } from '@/app/actions/eventActions'; // Import the server action
 
 // Define Zod schema for validation (Translated messages)
 const formSchema = z.object({
@@ -33,25 +34,10 @@ const formSchema = z.object({
     message: "Debes seleccionar al menos un servicio.",
   }),
   message: z.string().min(10, { message: "El mensaje debe tener al menos 10 caracteres." }),
-  otherService: z.string().optional(), // For "Otro" specification
+  otherServiceDetail: z.string().optional(), // Renamed from otherService to match Quote schema
 });
 
 type FormData = z.infer<typeof formSchema>;
-
-// Mock server action (Translated messages)
-async function submitInquiry(data: FormData): Promise<{ success: boolean; message: string }> {
-  console.log("Enviando consulta:", data);
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 1000));
-
-  // Simulate success/failure
-  const success = Math.random() > 0.2; // 80% success rate
-  if (success) {
-    return { success: true, message: "¡Consulta enviada con éxito! Nos pondremos en contacto pronto." };
-  } else {
-    return { success: false, message: "Error al enviar la consulta. Por favor, inténtalo de nuevo más tarde." };
-  }
-}
 
 interface ContactFormProps {
   servicesList: Service[]; // Accept services as a prop
@@ -71,7 +57,7 @@ export function ContactForm({ servicesList }: ContactFormProps) {
       eventDate: "",
       services: [],
       message: "",
-      otherService: "",
+      otherServiceDetail: "", // Updated default
     },
   });
 
@@ -82,31 +68,36 @@ export function ContactForm({ servicesList }: ContactFormProps) {
       setShowOtherServiceInput(true);
     } else {
       setShowOtherServiceInput(false);
-      form.setValue("otherService", ""); // Clear if "Otro" is unchecked
+      form.setValue("otherServiceDetail", ""); // Clear if "Otro" is unchecked
     }
   }, [watchedServices, form]);
 
 
  async function onSubmit(values: FormData) {
     setIsSubmitting(true);
-    try {
-      // If "Otro" is selected, ensure its description is included or handled
-      const submissionData = { ...values };
-      if (values.services.includes("other") && values.otherService) {
-        // You might want to modify how "other" is stored, e.g., replace "other" with "Otro: [description]"
-        // For now, we'll just ensure it's submitted.
-      } else if (values.services.includes("other") && !values.otherService) {
-         toast({
-           title: "Campo Requerido",
-           description: "Por favor, especifica el servicio 'Otro'.",
-           variant: "destructive",
-         });
-         setIsSubmitting(false);
-         return;
+    const formData = new FormData();
+    Object.entries(values).forEach(([key, value]) => {
+      if (Array.isArray(value)) {
+        value.forEach(item => formData.append(key, item));
+      } else if (value !== undefined && value !== null) {
+        formData.append(key, String(value));
       }
+    });
+
+    // Special handling for "other" service
+    if (values.services.includes("other") && !values.otherServiceDetail) {
+      toast({
+        title: "Campo Requerido",
+        description: "Por favor, especifica el servicio 'Otro'.",
+        variant: "destructive",
+      });
+      setIsSubmitting(false);
+      return;
+    }
 
 
-      const result = await submitInquiry(submissionData);
+    try {
+      const result = await addQuoteAction(formData); // Use the server action
       if (result.success) {
         toast({
           title: "¡Éxito!",
@@ -117,9 +108,13 @@ export function ContactForm({ servicesList }: ContactFormProps) {
       } else {
         toast({
           title: "Error",
-          description: result.message,
+          description: result.message || "Error al enviar la cotización.",
           variant: "destructive",
         });
+         if (result.errors) {
+           console.error("Errores de validación:", result.errors);
+           // Potentially set form errors here if your action returns them in a way react-hook-form can use
+         }
       }
     } catch (error) {
       console.error("Error de envío:", error);
@@ -133,10 +128,10 @@ export function ContactForm({ servicesList }: ContactFormProps) {
     }
   }
 
-  const whatsappNumber = "1234567890";
+  const whatsappNumber = "1234567890"; // Replace with actual number
   const whatsappLink = `https://wa.me/${whatsappNumber}`;
 
-  const displayServices = [...servicesList, { id: "other", title: "Otro (Especificar abajo)", description: "", iconName: "", image: "", aiHint: "" }];
+  const displayServices = [...servicesList, { id: "other", title: "Otro (Especificar abajo)", description: "", iconName: "HelpCircle", image: "", aiHint: "other service" }];
 
 
   return (
@@ -220,11 +215,11 @@ export function ContactForm({ servicesList }: ContactFormProps) {
                             <FormField
                               key={service.id}
                               control={form.control}
-                              name="services"
+                              name="services" // Name for the array of services
                               render={({ field }) => {
                                 return (
                                   <FormItem
-                                    key={service.id}
+                                    key={service.id} // Key for the individual item
                                     className="flex flex-row items-start space-x-3 space-y-0"
                                   >
                                     <FormControl>
@@ -259,7 +254,7 @@ export function ContactForm({ servicesList }: ContactFormProps) {
                   {showOtherServiceInput && (
                     <FormField
                       control={form.control}
-                      name="otherService"
+                      name="otherServiceDetail" // Updated name
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Especificar "Otro" Servicio</FormLabel>
@@ -292,7 +287,7 @@ export function ContactForm({ servicesList }: ContactFormProps) {
                    )}
                  />
                  <Button type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90" disabled={isSubmitting}>
-                    {isSubmitting ? "Enviando..." : "Enviar Consulta"}
+                    {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Enviando...</> : "Enviar Consulta"}
                  </Button>
                </form>
              </Form>

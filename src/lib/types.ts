@@ -35,3 +35,17 @@ export interface CalendarEvent {
   servicesInvolved?: string[]; // Array of service titles or IDs
   allDay?: boolean;
 }
+
+// Type for a quote submission
+export interface Quote {
+  id: string; // Unique identifier
+  name: string;
+  email: string;
+  phone?: string;
+  eventDate?: string; // Kept as string for simplicity, can be Date in DB
+  services: string[]; // Array of service IDs (or titles if preferred)
+  otherServiceDetail?: string; // For "Otro" service specification
+  message: string;
+  submissionDate: Date;
+  status: 'new' | 'contacted' | 'closed'; // Status of the quote
+}

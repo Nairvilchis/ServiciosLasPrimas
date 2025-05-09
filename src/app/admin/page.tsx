@@ -2,7 +2,7 @@
 "use client"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
-import { CalendarCheck, DollarSign, FileText, GalleryHorizontal, ListTree } from "lucide-react"; // Import icons
+import { CalendarCheck, DollarSign, FileText, GalleryHorizontal, ListTree, MessageSquareText } from "lucide-react"; // Import icons, added MessageSquareText
 
 export default function AdminDashboard() {
  const router = useRouter();
@@ -49,6 +49,18 @@ export default function AdminDashboard() {
      </CardHeader>
      <CardContent className="text-center p-6">
       <p className="text-sm text-muted-foreground">Gestiona tu agenda, compras y presupuestos.</p>
+     </CardContent>
+    </Card>
+    <Card
+     onClick={() => handleNavigation("/admin/quotes")}
+     className="cursor-pointer hover:shadow-xl transition-shadow select-none w-full transform hover:scale-105"
+    >
+     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+      <CardTitle className="text-xl font-medium">Cotizaciones</CardTitle>
+      <MessageSquareText className="h-6 w-6 text-muted-foreground" />
+     </CardHeader>
+     <CardContent className="text-center p-6">
+      <p className="text-sm text-muted-foreground">Revisa y gestiona las solicitudes de cotización.</p>
      </CardContent>
     </Card>
    </div>

@@ -3,7 +3,7 @@
 import mongoose from 'mongoose';
 // Importa la biblioteca Mongoose, que se utiliza para interactuar con MongoDB.
 
-import type { Service, GalleryPhoto, CalendarEvent } from '@/lib/types';
+import type { Service, GalleryPhoto, CalendarEvent, Quote } from '@/lib/types';
 // Importa los tipos `Service` y `GalleryPhoto` desde el archivo de tipos. Esto asegura que los datos cumplan con las interfaces definidas.
 
 import { connectDB } from '@/config/db';
@@ -51,6 +51,19 @@ const calendarEventSchema = new mongoose.Schema<CalendarEvent>({
   allDay: { type: Boolean, default: false },
 });
 
+const quoteSchema = new mongoose.Schema<Quote>({
+  id: { type: String, required: true, unique: true },
+  name: { type: String, required: true },
+  email: { type: String, required: true },
+  phone: { type: String },
+  eventDate: { type: String }, // Store as string, can be parsed to Date if needed
+  services: [{ type: String, required: true }], // Array of service IDs/titles
+  otherServiceDetail: { type: String },
+  message: { type: String, required: true },
+  submissionDate: { type: Date, default: Date.now, required: true },
+  status: { type: String, enum: ['new', 'contacted', 'closed'], default: 'new', required: true },
+});
+
 
 const ServiceModel = mongoose.models.Service || mongoose.model<Service>('Service', serviceSchema);
 // Crea un modelo de Mongoose llamado `Service` basado en el esquema `serviceSchema`. Este modelo se utiliza para interactuar con la colección `Service` en MongoDB.
@@ -59,6 +72,8 @@ const PhotoModel = mongoose.models.GalleryPhoto || mongoose.model<GalleryPhoto>(
 // Crea un modelo de Mongoose llamado `GalleryPhoto` basado en el esquema `photoSchema`. Este modelo se utiliza para interactuar con la colección `GalleryPhoto` en MongoDB.
 
 const CalendarEventModel = mongoose.models.CalendarEvent || mongoose.model<CalendarEvent>('CalendarEvent', calendarEventSchema);
+
+const QuoteModel = mongoose.models.Quote || mongoose.model<Quote>('Quote', quoteSchema);
 
 
 // --- Funciones de Servicio ---
@@ -196,4 +211,32 @@ export async function deleteCalendarEvent(id: string): Promise<boolean> {
     return true;
   }
   return false;
+}
+
+// --- Funciones de Cotizaciones (Quotes) ---
+export async function addQuote(quoteData: Omit<Quote, 'id' | 'submissionDate' | 'status'>): Promise<Quote> {
+  const newId = 'quote-' + Date.now();
+  const newQuote = new QuoteModel({
+    ...quoteData,
+    id: newId,
+    submissionDate: new Date(),
+    status: 'new',
+  });
+  await newQuote.save();
+  console.log('Cotización Añadida:', newQuote);
+  return JSON.parse(JSON.stringify(newQuote)) as Quote;
+}
+
+export async function getQuotes(): Promise<Quote[]> {
+  const quotes = await QuoteModel.find().sort({ submissionDate: -1 }).lean(); // Sort by newest first
+  return JSON.parse(JSON.stringify(quotes)) as Quote[];
+}
+
+export async function updateQuoteStatus(id: string, status: 'new' | 'contacted' | 'closed'): Promise<Quote | null> {
+  const updatedQuote = await QuoteModel.findOneAndUpdate({ id }, { status }, { new: true }).lean();
+  if (updatedQuote) {
+    console.log('Estado de Cotización Actualizado:', updatedQuote);
+    return JSON.parse(JSON.stringify(updatedQuote)) as Quote;
+  }
+  return null;
 }
