@@ -13,9 +13,10 @@ import {
   addCalendarEvent,
   updateCalendarEvent,
   deleteCalendarEvent,
-  addQuote, // Import addQuote
+  addQuote,
+  updateSiteSettings, // Import updateSiteSettings
 } from '@/services/eventData';
-import type { Service, GalleryPhoto, CalendarEvent, Quote } from '@/lib/types';
+import type { Service, GalleryPhoto, CalendarEvent, Quote, SiteSetting } from '@/lib/types';
 
 // --- Zod Schemas for Input Validation ---
 
@@ -61,6 +62,14 @@ const QuoteInputSchema = z.object({
   services: z.array(z.string()).min(1, { message: "Debes seleccionar al menos un servicio." }),
   message: z.string().min(10, { message: "El mensaje debe tener al menos 10 caracteres." }),
   otherServiceDetail: z.string().optional(),
+});
+
+// Zod schema for Site Settings
+const SiteSettingsInputSchema = z.object({
+  whatsappNumber: z.string().min(10, "El número de WhatsApp debe tener al menos 10 dígitos.").regex(/^\+?[1-9]\d{1,14}$/, "Número de WhatsApp inválido."),
+  contactEmail: z.string().email("Correo electrónico de contacto inválido."),
+  contactPhone: z.string().min(10, "El teléfono de contacto debe tener al menos 10 dígitos.").regex(/^\+?[1-9]\d{1,14}$/, "Teléfono de contacto inválido."),
+  copyrightText: z.string().optional(),
 });
 
 
@@ -400,5 +409,34 @@ export async function addQuoteAction(formData: FormData) {
   } catch (error) {
     console.error("Error al añadir cotización:", error);
     return { success: false, message: "Error al enviar la cotización." };
+  }
+}
+
+// --- Server Action for Site Settings ---
+export async function updateSiteSettingsAction(formData: FormData) {
+  const rawData = Object.fromEntries(formData.entries());
+  const validatedFields = SiteSettingsInputSchema.safeParse(rawData);
+
+  if (!validatedFields.success) {
+    console.error("Error de Validación (Configuración del Sitio):", validatedFields.error.flatten().fieldErrors);
+    return {
+      success: false,
+      errors: validatedFields.error.flatten().fieldErrors,
+      message: "Validación fallida. Por favor, revisa los campos de configuración.",
+    };
+  }
+
+  try {
+    const updatedSettings = await updateSiteSettings(validatedFields.data);
+    if (!updatedSettings) {
+      return { success: false, message: "No se pudo actualizar la configuración del sitio." };
+    }
+    revalidatePath('/'); // Revalidate home page to reflect changes in footer/contact
+    revalidatePath('/admin/settings'); // Revalidate settings page
+    return { success: true, data: updatedSettings, message: "Configuración del sitio actualizada con éxito." };
+  } catch (error) {
+    console.error("Error al actualizar la configuración del sitio:", error);
+    const errorMessage = error instanceof Error ? error.message : "Ocurrió un error desconocido.";
+    return { success: false, message: `Error al actualizar la configuración: ${errorMessage}` };
   }
 }

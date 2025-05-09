@@ -49,3 +49,13 @@ export interface Quote {
   submissionDate: Date;
   status: 'new' | 'contacted' | 'closed'; // Status of the quote
 }
+
+// Type for Site Settings / Contact Information
+export interface SiteSetting {
+  id: string; // Should be a single, known ID e.g., "default-settings"
+  whatsappNumber: string;
+  contactEmail: string;
+  contactPhone: string;
+  // Add other footer/site details here if needed, e.g., copyright notice, social media links
+  copyrightText?: string;
+}

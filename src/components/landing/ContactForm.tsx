@@ -18,11 +18,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import React from "react";
-import { MessageSquare, Loader2 } from 'lucide-react'; // Added Loader2
+import React, { useEffect, useState } from "react"; // Added useState, useEffect
+import { MessageSquare, Loader2 } from 'lucide-react';
 import Link from 'next/link';
-import type { Service } from '@/lib/types'; // Import Service type
-import { addQuoteAction } from '@/app/actions/eventActions'; // Import the server action
+import type { Service, SiteSetting } from '@/lib/types';
+import { addQuoteAction } from '@/app/actions/eventActions';
+import { getSiteSettings } from '@/services/eventData'; // Import getSiteSettings
 
 // Define Zod schema for validation (Translated messages)
 const formSchema = z.object({
@@ -34,19 +35,21 @@ const formSchema = z.object({
     message: "Debes seleccionar al menos un servicio.",
   }),
   message: z.string().min(10, { message: "El mensaje debe tener al menos 10 caracteres." }),
-  otherServiceDetail: z.string().optional(), // Renamed from otherService to match Quote schema
+  otherServiceDetail: z.string().optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
 
 interface ContactFormProps {
-  servicesList: Service[]; // Accept services as a prop
+  servicesList: Service[];
 }
 
 export function ContactForm({ servicesList }: ContactFormProps) {
   const { toast } = useToast();
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const [showOtherServiceInput, setShowOtherServiceInput] = React.useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showOtherServiceInput, setShowOtherServiceInput] = useState(false);
+  const [siteSettings, setSiteSettings] = useState<SiteSetting | null>(null); // State for site settings
+  const [isLoadingSettings, setIsLoadingSettings] = useState(true);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -57,18 +60,40 @@ export function ContactForm({ servicesList }: ContactFormProps) {
       eventDate: "",
       services: [],
       message: "",
-      otherServiceDetail: "", // Updated default
+      otherServiceDetail: "",
     },
   });
+  
+  useEffect(() => {
+    async function loadSiteSettings() {
+      try {
+        const settings = await getSiteSettings();
+        setSiteSettings(settings);
+      } catch (error) {
+        console.error("Error al cargar la configuración del sitio:", error);
+        // Use fallback defaults if fetching fails
+        setSiteSettings({
+          id: 'default-fallback',
+          whatsappNumber: '1234567890', // Fallback
+          contactEmail: 'error@example.com',
+          contactPhone: '0000000000',
+          copyrightText: `© ${new Date().getFullYear()} Servicios Las Primas. Todos los derechos reservados.`
+        });
+      } finally {
+        setIsLoadingSettings(false);
+      }
+    }
+    loadSiteSettings();
+  }, []);
 
-  // Watch the services field to show/hide "Otro" input
+
   const watchedServices = form.watch("services");
-  React.useEffect(() => {
+  useEffect(() => {
     if (watchedServices.includes("other")) {
       setShowOtherServiceInput(true);
     } else {
       setShowOtherServiceInput(false);
-      form.setValue("otherServiceDetail", ""); // Clear if "Otro" is unchecked
+      form.setValue("otherServiceDetail", "");
     }
   }, [watchedServices, form]);
 
@@ -84,7 +109,6 @@ export function ContactForm({ servicesList }: ContactFormProps) {
       }
     });
 
-    // Special handling for "other" service
     if (values.services.includes("other") && !values.otherServiceDetail) {
       toast({
         title: "Campo Requerido",
@@ -95,16 +119,15 @@ export function ContactForm({ servicesList }: ContactFormProps) {
       return;
     }
 
-
     try {
-      const result = await addQuoteAction(formData); // Use the server action
+      const result = await addQuoteAction(formData);
       if (result.success) {
         toast({
           title: "¡Éxito!",
           description: result.message,
         });
-        form.reset(); // Reset form on success
-        setShowOtherServiceInput(false); // Reset "Otro" input visibility
+        form.reset();
+        setShowOtherServiceInput(false);
       } else {
         toast({
           title: "Error",
@@ -113,7 +136,6 @@ export function ContactForm({ servicesList }: ContactFormProps) {
         });
          if (result.errors) {
            console.error("Errores de validación:", result.errors);
-           // Potentially set form errors here if your action returns them in a way react-hook-form can use
          }
       }
     } catch (error) {
@@ -128,8 +150,9 @@ export function ContactForm({ servicesList }: ContactFormProps) {
     }
   }
 
-  const whatsappNumber = "1234567890"; // Replace with actual number
-  const whatsappLink = `https://wa.me/${whatsappNumber}`;
+  const whatsappLink = siteSettings?.whatsappNumber 
+    ? `https://wa.me/${siteSettings.whatsappNumber.replace(/\D/g, '')}` // Ensure only digits for wa.me link
+    : `https://wa.me/1234567890`; // Fallback
 
   const displayServices = [...servicesList, { id: "other", title: "Otro (Especificar abajo)", description: "", iconName: "HelpCircle", image: "", aiHint: "other service" }];
 
@@ -215,11 +238,11 @@ export function ContactForm({ servicesList }: ContactFormProps) {
                             <FormField
                               key={service.id}
                               control={form.control}
-                              name="services" // Name for the array of services
+                              name="services" 
                               render={({ field }) => {
                                 return (
                                   <FormItem
-                                    key={service.id} // Key for the individual item
+                                    key={service.id} 
                                     className="flex flex-row items-start space-x-3 space-y-0"
                                   >
                                     <FormControl>
@@ -254,7 +277,7 @@ export function ContactForm({ servicesList }: ContactFormProps) {
                   {showOtherServiceInput && (
                     <FormField
                       control={form.control}
-                      name="otherServiceDetail" // Updated name
+                      name="otherServiceDetail" 
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Especificar "Otro" Servicio</FormLabel>
@@ -294,7 +317,7 @@ export function ContactForm({ servicesList }: ContactFormProps) {
 
              <div className="mt-6 text-center">
                 <p className="text-sm text-muted-foreground mb-2">O envíanos un mensaje directamente por WhatsApp:</p>
-                 <Button variant="outline" asChild>
+                 <Button variant="outline" asChild disabled={isLoadingSettings}>
                     <Link href={whatsappLink} target="_blank" rel="noopener noreferrer">
                        <MessageSquare className="mr-2 h-4 w-4" /> Chatear por WhatsApp
                     </Link>
