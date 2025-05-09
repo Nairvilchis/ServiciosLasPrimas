@@ -23,7 +23,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Label } from '@/components/ui/label';
 import { FormItem } from '@/components/ui/form';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger, DialogClose } from '@/components/ui/dialog'; // Added Dialog components
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'; // Removed DialogTrigger, DialogClose
 import { Badge } from '@/components/ui/badge'; // Added Badge for item display in dialog
 
 
@@ -487,13 +487,9 @@ export default function AgendaFinanzasPage() {
                                       <TableCell className="text-right">{budget.total.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</TableCell>
                                       <TableCell className="text-right">
                                           <div className="flex justify-end space-x-1">
-                                              <Dialog>
-                                                  <DialogTrigger asChild>
-                                                    <Button variant="ghost" size="sm" title="Ver Detalles" onClick={() => setSelectedBudgetDetails(budget)}>
-                                                        <Eye className="h-4 w-4"/>
-                                                    </Button>
-                                                  </DialogTrigger>
-                                              </Dialog>
+                                               <Button variant="ghost" size="sm" title="Ver Detalles" onClick={() => setSelectedBudgetDetails(budget)}>
+                                                    <Eye className="h-4 w-4"/>
+                                               </Button>
                                               <Button variant="outline" size="sm" onClick={() => handleEditBudgetClick(budget)} title="Editar"><Edit className="h-3 w-3"/></Button>
                                               <Button variant="destructive" size="sm" onClick={() => handleDeleteBudget(budget.id)} title="Eliminar"><Trash2 className="h-3 w-3"/></Button>
                                           </div>
@@ -538,6 +534,7 @@ export default function AgendaFinanzasPage() {
         </AlertDialogContent>
       </AlertDialog>
 
+      <Dialog open={!!selectedBudgetDetails} onOpenChange={(isOpen) => { if (!isOpen) setSelectedBudgetDetails(null); }}>
        {selectedBudgetDetails && (
         <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -593,13 +590,13 @@ export default function AgendaFinanzasPage() {
               </div>
           </div>
           <DialogFooter>
-            <DialogClose asChild>
               <Button type="button" variant="outline" onClick={() => setSelectedBudgetDetails(null)}>Cerrar</Button>
-            </DialogClose>
           </DialogFooter>
         </DialogContent>
       )}
+    </Dialog>
 
     </div>
   );
 }
+
