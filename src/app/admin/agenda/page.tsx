@@ -6,7 +6,7 @@ import React, { useState, useEffect, useTransition, Suspense } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, CalendarClock, ShoppingCart, FileText, PlusCircle, ListChecks, Edit, Trash2, Loader2 } from 'lucide-react';
+import { ArrowLeft, CalendarClock, ShoppingCart, FileText, PlusCircle, ListChecks, Edit, Trash2, Loader2, Eye } from 'lucide-react'; // Added Eye
 import { useRouter } from 'next/navigation';
 import { getCalendarEvents, getServices } from '@/services/eventData'; // Added getServices
 import type { CalendarEvent, Service } from '@/lib/types';
@@ -22,7 +22,9 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Label } from '@/components/ui/label';
-import { FormItem } from '@/components/ui/form'; // Added FormItem import
+import { FormItem } from '@/components/ui/form';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger, DialogClose } from '@/components/ui/dialog'; // Added Dialog components
+import { Badge } from '@/components/ui/badge'; // Added Badge for item display in dialog
 
 
 export default function AgendaFinanzasPage() {
@@ -62,6 +64,7 @@ export default function AgendaFinanzasPage() {
   const [isEditBudgetMode, setIsEditBudgetMode] = useState(false);
   const [budgetToEdit, setBudgetToEdit] = useState<any | null>(null);
   const [nextBudgetItemId, setNextBudgetItemId] = useState(1);
+  const [selectedBudgetDetails, setSelectedBudgetDetails] = useState<any | null>(null); // For budget details dialog
 
   const fetchEvents = async () => {
     setIsLoadingEvents(true);
@@ -120,7 +123,7 @@ export default function AgendaFinanzasPage() {
         return;
     }
     if (isEditMode && purchaseToEdit) {
-      setPurchases(purchases.map(p => p.id === purchaseToEdit.id ? { ...p, date: newPurchaseDate, description: newPurchaseDescription, amount: newPurchaseAmount, purchaserName: newPurchaserName } : p));
+      setPurchases(purchases.map(p => p.id === purchaseToEdit.id ? { ...p, date: newPurchaseDate, description: newPurchaseDescription, amount: parseFloat(newPurchaseAmount) || 0, purchaserName: newPurchaserName } : p));
       toast({title: "Éxito", description: "Compra actualizada."})
     } else {
       const newPurchase = {
@@ -470,6 +473,7 @@ export default function AgendaFinanzasPage() {
                               <TableRow>
                                   <TableHead>Cliente</TableHead>
                                   <TableHead>Fecha Evento</TableHead>
+                                  <TableHead className="hidden md:table-cell">Creado</TableHead>
                                   <TableHead className="text-right">Total</TableHead>
                                   <TableHead className="text-right">Acciones</TableHead>
                               </TableRow>
@@ -479,11 +483,19 @@ export default function AgendaFinanzasPage() {
                                   <TableRow key={budget.id}>
                                       <TableCell>{budget.clientName}</TableCell>
                                       <TableCell>{isValid(parseISO(budget.eventDate)) ? format(parseISO(budget.eventDate), "PP", { locale: es }) : 'Fecha Inválida'}</TableCell>
+                                      <TableCell className="hidden md:table-cell">{isValid(parseISO(budget.createdAt)) ? format(parseISO(budget.createdAt), "PP", { locale: es }) : 'Fecha Inválida'}</TableCell>
                                       <TableCell className="text-right">{budget.total.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</TableCell>
                                       <TableCell className="text-right">
-                                          <div className="flex justify-end space-x-2">
-                                              <Button variant="outline" size="sm" onClick={() => handleEditBudgetClick(budget)}><Edit className="h-3 w-3"/></Button>
-                                              <Button variant="destructive" size="sm" onClick={() => handleDeleteBudget(budget.id)}><Trash2 className="h-3 w-3"/></Button>
+                                          <div className="flex justify-end space-x-1">
+                                              <Dialog>
+                                                  <DialogTrigger asChild>
+                                                    <Button variant="ghost" size="sm" title="Ver Detalles" onClick={() => setSelectedBudgetDetails(budget)}>
+                                                        <Eye className="h-4 w-4"/>
+                                                    </Button>
+                                                  </DialogTrigger>
+                                              </Dialog>
+                                              <Button variant="outline" size="sm" onClick={() => handleEditBudgetClick(budget)} title="Editar"><Edit className="h-3 w-3"/></Button>
+                                              <Button variant="destructive" size="sm" onClick={() => handleDeleteBudget(budget.id)} title="Eliminar"><Trash2 className="h-3 w-3"/></Button>
                                           </div>
                                       </TableCell>
                                   </TableRow>
@@ -526,7 +538,68 @@ export default function AgendaFinanzasPage() {
         </AlertDialogContent>
       </AlertDialog>
 
+       {selectedBudgetDetails && (
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Detalles del Presupuesto</DialogTitle>
+            <DialogDescription>
+              Cliente: {selectedBudgetDetails.clientName} <br />
+              Fecha Evento: {isValid(parseISO(selectedBudgetDetails.eventDate)) ? format(parseISO(selectedBudgetDetails.eventDate), "PPPP", { locale: es }) : 'Fecha Inválida'}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4 text-sm">
+            {selectedBudgetDetails.clientContact && (
+              <div className="grid grid-cols-[120px_1fr] items-center gap-2">
+                <span className="font-semibold text-muted-foreground">Contacto:</span>
+                <span>{selectedBudgetDetails.clientContact}</span>
+              </div>
+            )}
+            {selectedBudgetDetails.eventLocation && (
+              <div className="grid grid-cols-[120px_1fr] items-center gap-2">
+                <span className="font-semibold text-muted-foreground">Lugar:</span>
+                <span>{selectedBudgetDetails.eventLocation}</span>
+              </div>
+            )}
+            {selectedBudgetDetails.eventDescription && (
+              <div className="grid grid-cols-[120px_1fr] items-start gap-2">
+                <span className="font-semibold text-muted-foreground pt-1">Descripción:</span>
+                <p className="bg-muted p-2 rounded-md whitespace-pre-wrap">{selectedBudgetDetails.eventDescription}</p>
+              </div>
+            )}
+            <div className="grid grid-cols-[120px_1fr] items-start gap-2">
+              <span className="font-semibold text-muted-foreground pt-1">Ítems:</span>
+              <div className="space-y-1">
+                {selectedBudgetDetails.items.map((item: any) => (
+                  <Badge key={item.id} variant="secondary" className="mr-1 mb-1 text-xs p-1">
+                    {item.name} (Cant: {item.quantity}, Precio: ${parseFloat(item.price).toFixed(2)}, Subt: ${item.subtotal.toFixed(2)})
+                  </Badge>
+                ))}
+                 {selectedBudgetDetails.items.length === 0 && <span>No hay ítems.</span>}
+              </div>
+            </div>
+            <div className="grid grid-cols-[120px_1fr] items-center gap-2">
+              <span className="font-semibold text-muted-foreground">Total:</span>
+              <span className="font-bold">{selectedBudgetDetails.total.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</span>
+            </div>
+            {selectedBudgetDetails.notes && (
+              <div className="grid grid-cols-[120px_1fr] items-start gap-2">
+                <span className="font-semibold text-muted-foreground pt-1">Notas:</span>
+                <p className="bg-muted p-2 rounded-md whitespace-pre-wrap">{selectedBudgetDetails.notes}</p>
+              </div>
+            )}
+             <div className="grid grid-cols-[120px_1fr] items-center gap-2">
+                <span className="font-semibold text-muted-foreground">Creado:</span>
+                <span>{isValid(parseISO(selectedBudgetDetails.createdAt)) ? format(parseISO(selectedBudgetDetails.createdAt), "PPpp", { locale: es }) : 'Fecha Inválida'}</span>
+              </div>
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button type="button" variant="outline" onClick={() => setSelectedBudgetDetails(null)}>Cerrar</Button>
+            </DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      )}
+
     </div>
   );
 }
-
