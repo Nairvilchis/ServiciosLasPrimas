@@ -28,7 +28,7 @@ export default function AgendaFinanzasPage() {
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [eventToDelete, setEventToDelete] = useState<CalendarEvent | null>(null);
   const [isDeleting, startDeleteTransition] = useTransition();
-  const [selectedCalendarDate, setSelectedCalendarDate] = useState<Date | undefined>(new Date());
+  const [selectedCalendarDate, setSelectedCalendarDate] = useState<Date | undefined>(undefined); // Initialize to undefined
 
 
   const fetchEvents = async () => {
@@ -45,8 +45,9 @@ export default function AgendaFinanzasPage() {
   };
 
   useEffect(() => {
+    setSelectedCalendarDate(new Date()); // Set initial date on client-side
     fetchEvents();
-  }, []);
+  }, []); // Empty dependency array ensures this runs once on mount
 
   const handleOpenModal = (event?: CalendarEvent) => {
     setSelectedEvent(event || null);
@@ -246,3 +247,4 @@ export default function AgendaFinanzasPage() {
     </div>
   );
 }
+
